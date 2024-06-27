@@ -16,10 +16,20 @@ class MovieViewModel {
     }
 
     func fetchTrendingMovies(){
-        movieService.fetchPopularMovies { result in
+        movieService.fetchTrendingMovies{ result in
             switch result {
                 case .success(let movies):
                     self.outputMovies?.didFetchMovies(movies: movies)
+                case .failure(let error):
+                    print(error.localizedDescription)
+                    self.outputMovies?.didFailToFetchMovies(error: error)
+            }
+        }
+
+        movieService.fetchWatchListMovies{ result in
+            switch result {
+                case .success(let movies):
+                    self.outputMovies?.didFetchWatchListMovies(movies: movies)
                 case .failure(let error):
                     print(error.localizedDescription)
                     self.outputMovies?.didFailToFetchMovies(error: error)

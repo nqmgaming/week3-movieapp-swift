@@ -22,6 +22,14 @@ class MovieCollectionViewCell: UICollectionViewCell {
         }
     }
 
+    let viewContainer: UIView = {
+
+        let view = UIView()
+        view.backgroundColor = .ssss
+        return view
+
+    }()
+
     let movieImage: UIImageView = {
         let image = UIImageView()
         image.contentMode = .scaleAspectFill
@@ -34,13 +42,19 @@ class MovieCollectionViewCell: UICollectionViewCell {
         let label = UILabel()
         label.textColor = .white
         label.font = UIFont.boldSystemFont(ofSize: 16)
+        label.numberOfLines = 0
+        label.lineBreakMode = .byWordWrapping
+        label.sizeToFit()
         return label
     }()
 
     let movieDateRelease: UILabel = {
         let label = UILabel()
-        label.textColor = .white
+        label.textColor = .lightGray
         label.font = UIFont.systemFont(ofSize: 14)
+        label.numberOfLines = 0
+        label.lineBreakMode = .byWordWrapping
+        label.sizeToFit()
         return label
     }()
 
@@ -49,38 +63,43 @@ class MovieCollectionViewCell: UICollectionViewCell {
         configure()
     }
 
-    private func configure() {
-        contentView.addSubview(movieImage)
-        contentView.addSubview(movieTitle)
-        contentView.addSubview(movieDateRelease)
 
+    private func configure() {
+        contentView.addSubview(viewContainer)
+        contentView.addSubview(movieImage)
+        viewContainer.addSubview(movieTitle)
+        viewContainer.addSubview(movieDateRelease)
+        contentView.layer.cornerRadius = 10
+        contentView.layer.masksToBounds = true
+
+        viewContainer.layer.cornerRadius = 10
+
+        viewContainer.translatesAutoresizingMaskIntoConstraints = false
         movieImage.translatesAutoresizingMaskIntoConstraints = false
         movieTitle.translatesAutoresizingMaskIntoConstraints = false
         movieDateRelease.translatesAutoresizingMaskIntoConstraints = false
 
-        NSLayoutConstraint.activate([
-            movieImage.topAnchor.constraint(equalTo: contentView.topAnchor),
-            movieImage.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            movieImage.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            movieImage.heightAnchor.constraint(equalTo: contentView.heightAnchor, multiplier: 0.7),
+        viewContainer.anchor(top: topAnchor, bottom: contentView.bottomAnchor, leading: contentView.leadingAnchor, trailing: contentView.trailingAnchor, paddingTop: 30, paddingBottom: 0, paddingLeft: 0, paddingRight: 0, width: 0, height: 0)
 
-            movieTitle.topAnchor.constraint(equalTo: movieImage.bottomAnchor, constant: 5),
-            movieTitle.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            movieTitle.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+        movieImage.anchor(top: topAnchor, bottom: contentView.bottomAnchor, leading: contentView.leadingAnchor, trailing: nil, paddingTop: 0 , paddingBottom: -15, paddingLeft: 16, paddingRight: 0, width: 90, height: 0)
 
-            movieDateRelease.topAnchor.constraint(equalTo: movieTitle.bottomAnchor, constant: 5),
-            movieDateRelease.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            movieDateRelease.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
-        ])
+        movieTitle.anchor(top: viewContainer.topAnchor, bottom: nil, leading: viewContainer.leadingAnchor, trailing: nil, paddingTop: 10, paddingBottom: 0, paddingLeft: 126, paddingRight: 0, width: 0, height: 0)
+
+        movieDateRelease.anchor(top: movieTitle.bottomAnchor, bottom: nil, leading: viewContainer.leadingAnchor, trailing: nil, paddingTop: 5, paddingBottom: 0, paddingLeft: 126, paddingRight: 0, width: 0, height: 0)
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func configureCell(with movie: Movie) {
+    func configureCell(with movie: Movie, isWatchList: Bool = false) {
+
+        if isWatchList {
+            print("Movie \(String(describing: movie.title))")
+        }
+
         self.movieTitle.text = movie.title
         self.movieDateRelease.text = movie.releaseDate
-        self.backGroundPath = movie.backdropPath
+        self.backGroundPath = movie.posterPath
     }
 }

@@ -8,5 +8,7 @@
 import Foundation
 
 protocol MovieService {
-    func fetchPopularMovies(completion: @escaping (Swift.Result<ListMovies, Error>) -> Void)
+    func fetchTrendingMovies(completion: @escaping (Swift.Result<ListMovies, Error>) -> Void)
+    func fetchWatchListMovies(completion: @escaping (Swift.Result<ListMovies, Error>) -> Void)
+    func updateWatchListMovies(movie: Movie, completion: @escaping (Swift.Result<Bool, Error>) -> Void)
 }

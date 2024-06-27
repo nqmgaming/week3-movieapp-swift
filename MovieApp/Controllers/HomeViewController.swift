@@ -1,6 +1,18 @@
 import UIKit
 
 class HomeViewController: UIViewController, MovieViewModelOutput {
+    func didFetchWatchListMovies(movies: ListMovies) {
+        guard let movie = movies.results else { return }
+        watchList = movie
+        DispatchQueue.main.async {
+            self.collectionViewTrending.reloadData()
+        }
+    }
+    
+    func didUpdateWatchListMovies(isSuccess: Bool) {
+        print("Update watch list: \(isSuccess)")
+    }
+    
     func didFetchMovies(movies: ListMovies) {
         guard let movie = movies.results else { return }
         trendingMovies = movie
@@ -14,6 +26,8 @@ class HomeViewController: UIViewController, MovieViewModelOutput {
     }
 
     var trendingMovies: [Movie] = []
+    var watchList: [Movie] = []
+    var watchlistMovieIDs: Set<Int> = []
 
     private let viewModel: MovieViewModel
 
@@ -50,6 +64,9 @@ class HomeViewController: UIViewController, MovieViewModelOutput {
         viewModel.fetchTrendingMovies()
         setupUI()
         layoutUI()
+
+        watchlistMovieIDs = Set(watchList.map { $0.id })
+        collectionViewTrending.reloadData()
     }
 
     // Removed the call from viewDidLayoutSubviews, it's better to keep it in one place
@@ -76,9 +93,9 @@ extension HomeViewController {
             movieLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
 
             collectionViewTrending.topAnchor.constraint(equalTo: movieLabel.bottomAnchor, constant: 20),
-            collectionViewTrending.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            collectionViewTrending.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            collectionViewTrending.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -20)
+            collectionViewTrending.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            collectionViewTrending.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            collectionViewTrending.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
 }
@@ -90,8 +107,10 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath) as? MovieCollectionViewCell else {
             return UICollectionViewCell()
         }
+        // check if the movie is in the watchlist
         let movie = trendingMovies[indexPath.row]
-        cell.configureCell(with: movie)
+        let isWatchList = watchlistMovieIDs.contains(movie.id)
+        cell.configureCell(with: movie, isWatchList: isWatchList)
         return cell
     }
 
@@ -100,7 +119,7 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: view.frame.width, height: 200)
+        return CGSize(width: view.frame.width * 0.9, height: 140)
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -108,7 +127,9 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
         navigationController?.pushViewController(DetailViewController(movie: trendingMovies[indexPath.row]), animated: true)
     }
 
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return 10
+
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets(top: 5, left: 5, bottom: 16, right: 16)
     }
 }

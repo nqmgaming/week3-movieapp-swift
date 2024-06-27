@@ -9,5 +9,8 @@ import Foundation
 
 protocol MovieViewModelOutput: AnyObject {
     func didFetchMovies(movies: ListMovies)
+    func didFetchWatchListMovies(movies: ListMovies)
+    func didUpdateWatchListMovies(isSuccess: Bool)
     func didFailToFetchMovies(error: Error)
 }
+
