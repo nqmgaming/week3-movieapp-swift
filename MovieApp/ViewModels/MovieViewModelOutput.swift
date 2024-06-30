@@ -24,7 +24,7 @@ protocol MovieVideosViewModelOutput: AnyObject {
 }
 
 protocol MovieUpdateWatchListViewModelOutput: AnyObject {
-    func didUpdateWatchListMovies(isSuccess: Bool)
+    func didUpdateWatchListMovies(isSuccess: Bool, isRemoved: Bool)
     func didFailToUpdateWatchListMovies(error: Error)
 }
 

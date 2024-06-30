@@ -15,7 +15,7 @@ class APIManager : MovieService {
         ]
 
         let url = URL(string: "\(Constants.BASE_URL)/trending/movie/week?&page=\(page)&api_key=\(Constants.API_KEY)")!
-        print(url)
+
 
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -200,7 +200,6 @@ class APIManager : MovieService {
     }
 
     func fetchMovieVideos(movieID: Int, completion: @escaping (Swift.Result<Videos, Error>) -> Void) {
-        print("fetchMovieVideos")
         let headers = [
             "accept": "application/json"
         ]

@@ -1,31 +1,33 @@
 import UIKit
 
 class HomeViewController: UIViewController, MovieViewModelOutput, MovieUpdateWatchListViewModelOutput {
+    
     func didFailToUpdateWatchListMovies(error: any Error) {
         print("Failed to update watch list: \(error.localizedDescription)")
     }
 
     func didFetchWatchListMovies(movies: ListMovies) {
-        guard let movie = movies.results else { return }
-        watchList = movie
+        guard let movie = movies.results else { dismissLoadingView(); return }
+        watchList.append(contentsOf: movie)
         self.watchlistMovieIDs = Set(watchList.map { $0.id })
         DispatchQueue.main.async {
             self.collectionViewTrending.reloadData()
+            self.dismissLoadingView()
         }
     }
 
-    func didUpdateWatchListMovies(isSuccess: Bool) {
-        print("Update watch list: \(isSuccess)")
-        if isSuccess {
+    func didUpdateWatchListMovies(isSuccess: Bool, isRemoved: Bool) {
+        if isSuccess || isRemoved {
             viewModel.fetchTrendingMovies()
         }
     }
 
     func didFetchMovies(movies: ListMovies) {
         guard let movie = movies.results else { return }
-        trendingMovies = movie
+        trendingMovies.append(contentsOf: movie)
         DispatchQueue.main.async {
             self.collectionViewTrending.reloadData()
+            self.dismissLoadingView()
         }
     }
 
@@ -36,6 +38,7 @@ class HomeViewController: UIViewController, MovieViewModelOutput, MovieUpdateWat
     var trendingMovies: [Movie] = []
     var watchList: [Movie] = []
     var watchlistMovieIDs: Set<Int> = []
+    var page = 1
 
     private let viewModel: MovieViewModel
 
@@ -69,7 +72,8 @@ class HomeViewController: UIViewController, MovieViewModelOutput, MovieUpdateWat
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .background
-        viewModel.fetchTrendingMovies()
+        showLoadingView()
+        viewModel.fetchTrendingMovies(page: page)
         setupUI()
         layoutUI()
         collectionViewTrending.reloadData()
@@ -149,4 +153,16 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
         return UIEdgeInsets(top: 5, left: 5, bottom: 16, right: 16)
     }
+
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        let offsetY = scrollView.contentOffset.y
+        let contentHeight = scrollView.contentSize.height
+        let height = scrollView.frame.size.height
+
+        if offsetY > contentHeight - height {
+            page += 1
+            viewModel.fetchTrendingMovies(page: page)
+        }
+    }
 }
+

@@ -3,20 +3,17 @@ import TinyConstraints
 import Cosmos
 
 class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieVideosViewModelOutput, MovieUpdateWatchListViewModelOutput {
-    func didUpdateWatchListMovies(isSuccess: Bool) {
+    func didUpdateWatchListMovies(isSuccess: Bool, isRemoved: Bool = false) {
         print("Update watch list: \(isSuccess)")
-
-        // alert
         DispatchQueue.main.async {
-            let alert = UIAlertController(title: "Success", message: "Movie added to watchlist", preferredStyle: .alert)
+            let message = isSuccess ? (isRemoved ? "Movie removed from watchlist" : "Movie added to watchlist") : "Failed to update watchlist"
+            let alert = UIAlertController(title: isSuccess ? "Success" : "Error", message: message, preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
             self.present(alert, animated: true, completion: nil)
-
-            // Update watchlist
+            // Update watchlist if operation was successful
             if isSuccess {
                 self.viewModel.fetchTrendingMovies()
             }
-
         }
     }
 
@@ -468,7 +465,7 @@ extension DetailViewController {
         print("Watchlist button tapped")
 
         // Update watchlist
-        viewModel.updateWatchListMovies(movie: movie, watchlist: !isWatchList)
+        viewModel.updateWatchListMovies(movie: movie, watchlist: !isWatchList, isRemoved: isWatchList)
         self.isWatchList = !self.isWatchList
         DispatchQueue.main.async {
             self.watchListButton.setTitle("\(self.isWatchList ? "Remove from Watchlist" : "Add to Watchlist")", for: .normal)

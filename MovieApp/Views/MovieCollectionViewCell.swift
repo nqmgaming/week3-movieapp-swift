@@ -1,11 +1,11 @@
 import UIKit
 
 class MovieCollectionViewCell: UICollectionViewCell {
-    var backGroundPath: String? {
+    var posterPath: String? {
         didSet {
-            guard let backgroundPath = backGroundPath else { return }
+            guard let posterPath = posterPath else { return }
 
-            if let imageURL = URL(string: "https://image.tmdb.org/t/p/w500\(backgroundPath)") {
+            if let imageURL = URL(string: "https://image.tmdb.org/t/p/w500\(posterPath)") {
                 URLSession.shared.dataTask(with: imageURL) { (data, response, error) in
                     if let error = error {
                         print(error.localizedDescription)
@@ -113,10 +113,11 @@ class MovieCollectionViewCell: UICollectionViewCell {
             self.isWatchList = true
             self.watchListLabel.text = "On my watchlist"
         }else {
+            self.isWatchList = false
             self.watchListLabel.text = ""
         }
         self.movieTitle.text = movie.title
         self.movieDateRelease.text = movie.getFormatDate()
-        self.backGroundPath = movie.posterPath
+        self.posterPath = movie.posterPath
     }
 }

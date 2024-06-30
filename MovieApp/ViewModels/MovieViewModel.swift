@@ -18,8 +18,8 @@ class MovieViewModel {
         self.movieService = movieService
     }
 
-    func fetchTrendingMovies(){
-        movieService.fetchTrendingMovies(page: 2){ result in
+    func fetchTrendingMovies(page: Int = 1){
+        movieService.fetchTrendingMovies(page: page){ result in
             switch result {
                 case .success(let movies):
                     self.outputMovies?.didFetchMovies(movies: movies)
@@ -64,11 +64,11 @@ class MovieViewModel {
         }
     }
 
-    func updateWatchListMovies(movie: Movie, watchlist: Bool){
+    func updateWatchListMovies(movie: Movie, watchlist: Bool, isRemoved: Bool = false){
         movieService.updateWatchListMovies(movie: movie, watchlist: watchlist){ result in
             switch result {
                 case .success(let isSuccess):
-                    self.outputUpdateWatchListMovies?.didUpdateWatchListMovies(isSuccess: isSuccess)
+                    self.outputUpdateWatchListMovies?.didUpdateWatchListMovies(isSuccess: isSuccess, isRemoved: isRemoved)
                 case .failure(let error):
                     print(error.localizedDescription)
                     self.outputUpdateWatchListMovies?.didFailToUpdateWatchListMovies(error: error)
