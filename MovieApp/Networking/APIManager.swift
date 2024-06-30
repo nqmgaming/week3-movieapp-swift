@@ -8,13 +8,14 @@
 import Foundation
 
 class APIManager : MovieService {
-    func fetchTrendingMovies(completion: @escaping (Swift.Result<ListMovies, Error>) -> Void) {
+    func fetchTrendingMovies(page: Int = 1, completion: @escaping (Swift.Result<ListMovies, Error>) -> Void) {
 
         let headers = [
             "accept": "application/json"
         ]
 
-        let url = URL(string: "\(Constants.BASE_URL)/trending/movie/week?api_key=\(Constants.API_KEY)")!
+        let url = URL(string: "\(Constants.BASE_URL)/trending/movie/week?&page=\(page)&api_key=\(Constants.API_KEY)")!
+        print(url)
 
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -134,7 +135,7 @@ class APIManager : MovieService {
         }.resume()
     }
 
-    func updateWatchListMovies(movie: Movie, completion: @escaping (Swift.Result<Bool, Error>) -> Void) {
+    func updateWatchListMovies(movie: Movie, watchlist: Bool, completion: @escaping (Swift.Result<Bool, Error>) -> Void) {
         let headers = [
             "accept": "application/json",
             "content-type": "application/json",
@@ -156,7 +157,7 @@ class APIManager : MovieService {
         let body: [String: Any] = [
             "media_type": "movie",
             "media_id": movie.id,
-            "watchlist": true
+            "watchlist": watchlist
         ]
 
         do {
@@ -199,6 +200,7 @@ class APIManager : MovieService {
     }
 
     func fetchMovieVideos(movieID: Int, completion: @escaping (Swift.Result<Videos, Error>) -> Void) {
+        print("fetchMovieVideos")
         let headers = [
             "accept": "application/json"
         ]

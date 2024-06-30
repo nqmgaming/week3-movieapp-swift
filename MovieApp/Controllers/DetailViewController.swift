@@ -2,7 +2,39 @@ import UIKit
 import TinyConstraints
 import Cosmos
 
-class DetailViewController: UIViewController, MovieDetailViewModelOutput {
+class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieVideosViewModelOutput, MovieUpdateWatchListViewModelOutput {
+    func didUpdateWatchListMovies(isSuccess: Bool) {
+        print("Update watch list: \(isSuccess)")
+
+        // alert
+        DispatchQueue.main.async {
+            let alert = UIAlertController(title: "Success", message: "Movie added to watchlist", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+            self.present(alert, animated: true, completion: nil)
+
+            // Update watchlist
+            if isSuccess {
+                self.viewModel.fetchTrendingMovies()
+            }
+
+        }
+    }
+
+    func didFailToUpdateWatchListMovies(error: any Error) {
+        print("Failed to update watch list: \(error.localizedDescription)")
+    }
+
+    func didFetchMovieVideos(videos: Videos) {
+        self.movieVideo = videos
+        DispatchQueue.main.async {
+            self.watchTrailerButton.isHidden = false
+        }
+    }
+
+    func didFailToFetchMovieVideos(error: any Error) {
+        print("Failed to fetch movie videos: \(error.localizedDescription)")
+    }
+
     func didFetchMovieDetail(movie: Movie) {
         self.movie = movie
         DispatchQueue.main.async {
@@ -21,15 +53,20 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput {
 
 
     let movieId: Int
+    var isWatchList: Bool = false
     var movie: Movie
+    var movieVideo: Videos?
     private let viewModel: MovieViewModel
 
-    init(movie: Movie, viewModel: MovieViewModel) {
+    init(movie: Movie, viewModel: MovieViewModel, isWatchList: Bool = false) {
         self.movieId = movie.id
         self.movie = movie
+        self.isWatchList = isWatchList
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
         self.viewModel.outputMovieDetail = self
+        self.viewModel.outputMovieVideos = self
+        self.viewModel.outputUpdateWatchListMovies = self
         self.watchTrailerButton.addTarget(self, action: #selector(watchTrailerButtonTapped), for: .touchUpInside)
         self.watchListButton.addTarget(self, action: #selector(watchListButtonTapped), for: .touchUpInside)
     }
@@ -250,12 +287,14 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput {
         button.backgroundColor = .clbutton
         button.layer.cornerRadius = 22
         button.isUserInteractionEnabled = true
+        // Set font size to 18
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 16)
         return button
     }()
 
     private lazy var watchListButton: UIButton = {
         let button = UIButton()
-        button.setTitle("Add to Watchlist", for: .normal)
+        button.setTitle("\(isWatchList ? "Remove from Watchlist" : "Add to Watchlist")", for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.backgroundColor = .clear
         button.layer.cornerRadius = 22
@@ -263,6 +302,8 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput {
         button.layer.borderWidth = 1
         button.layer.borderColor = UIColor.white.cgColor
         button.isUserInteractionEnabled = true
+        // Set font size to 18
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 16)
         return button
     }()
 
@@ -287,7 +328,8 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput {
         layout()
         style()
         loadGenres()
-        viewModel.getMovieDetail(movieID: movieId)
+        viewModel.fetchMovieDetail(movieID: movieId)
+        viewModel.fetchMovieVideos(movieID: movieId)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -417,16 +459,22 @@ extension DetailViewController: UICollectionViewDataSource, UICollectionViewDele
 extension DetailViewController {
     @objc func watchTrailerButtonTapped() {
         print("Watch trailer button tapped")
-
-        //Get link and open in safari
-//        if let url = URL(string: self.movie.get) {
-//            UIApplication.shared.open(url)
-//        }
-
+        // Open the trailer in YouTube app
+        let youtubeURL = URL(string: "https://www.youtube.com/watch?v=\(movieVideo?.results.first?.key ?? "")")!
+        UIApplication.shared.open(movieVideo?.getVideoURL() ?? youtubeURL, options: [:], completionHandler: nil)
     }
 
     @objc func watchListButtonTapped() {
         print("Watchlist button tapped")
+
+        // Update watchlist
+        viewModel.updateWatchListMovies(movie: movie, watchlist: !isWatchList)
+        self.isWatchList = !self.isWatchList
+        DispatchQueue.main.async {
+            self.watchListButton.setTitle("\(self.isWatchList ? "Remove from Watchlist" : "Add to Watchlist")", for: .normal)
+        }
+
+
     }
 }
 

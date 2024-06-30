@@ -1,6 +1,10 @@
 import UIKit
 
-class HomeViewController: UIViewController, MovieViewModelOutput {
+class HomeViewController: UIViewController, MovieViewModelOutput, MovieUpdateWatchListViewModelOutput {
+    func didFailToUpdateWatchListMovies(error: any Error) {
+        print("Failed to update watch list: \(error.localizedDescription)")
+    }
+
     func didFetchWatchListMovies(movies: ListMovies) {
         guard let movie = movies.results else { return }
         watchList = movie
@@ -9,11 +13,14 @@ class HomeViewController: UIViewController, MovieViewModelOutput {
             self.collectionViewTrending.reloadData()
         }
     }
-    
+
     func didUpdateWatchListMovies(isSuccess: Bool) {
         print("Update watch list: \(isSuccess)")
+        if isSuccess {
+            viewModel.fetchTrendingMovies()
+        }
     }
-    
+
     func didFetchMovies(movies: ListMovies) {
         guard let movie = movies.results else { return }
         trendingMovies = movie
@@ -96,7 +103,7 @@ extension HomeViewController {
         NSLayoutConstraint.activate([
             movieLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
             movieLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            
+
             collectionViewTrending.topAnchor.constraint(equalTo: movieLabel.bottomAnchor, constant: 20),
             collectionViewTrending.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionViewTrending.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -130,7 +137,8 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
 
         let movie = trendingMovies[indexPath.row]
-        let detailViewController = DetailViewController(movie: movie, viewModel: viewModel)
+        let isWatchList = watchlistMovieIDs.contains(movie.id)
+        let detailViewController = DetailViewController(movie: movie, viewModel: viewModel, isWatchList: isWatchList)
         detailViewController.title = movie.title
         detailViewController.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(detailViewController, animated: true)

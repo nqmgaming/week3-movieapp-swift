@@ -11,13 +11,15 @@ class MovieViewModel {
     private let movieService: MovieService
     weak var outputMovies: MovieViewModelOutput?
     weak var outputMovieDetail: MovieDetailViewModelOutput?
+    weak var outputMovieVideos: MovieVideosViewModelOutput?
+    weak var outputUpdateWatchListMovies: MovieUpdateWatchListViewModelOutput?
 
     init(movieService: MovieService) {
         self.movieService = movieService
     }
 
     func fetchTrendingMovies(){
-        movieService.fetchTrendingMovies{ result in
+        movieService.fetchTrendingMovies(page: 2){ result in
             switch result {
                 case .success(let movies):
                     self.outputMovies?.didFetchMovies(movies: movies)
@@ -38,7 +40,7 @@ class MovieViewModel {
         }
     }
 
-   func getMovieDetail(movieID: Int){
+    func fetchMovieDetail(movieID: Int){
         movieService.fetchMovieDetail(movieID: movieID){ result in
             switch result {
                 case .success(let movie):
@@ -50,14 +52,26 @@ class MovieViewModel {
         }
     }
 
-    func updateWatchListMovies(movie: Movie){
-        movieService.updateWatchListMovies(movie: movie){ result in
+    func fetchMovieVideos(movieID: Int){
+        movieService.fetchMovieVideos(movieID: movieID){ result in
             switch result {
-                case .success(let isSuccess):
-                    self.outputMovies?.didUpdateWatchListMovies(isSuccess: isSuccess)
+                case .success(let videos):
+                    self.outputMovieVideos?.didFetchMovieVideos(videos: videos)
                 case .failure(let error):
                     print(error.localizedDescription)
-                    self.outputMovies?.didFailToFetchMovies(error: error)
+                    self.outputMovieVideos?.didFailToFetchMovieVideos(error: error)
+            }
+        }
+    }
+
+    func updateWatchListMovies(movie: Movie, watchlist: Bool){
+        movieService.updateWatchListMovies(movie: movie, watchlist: watchlist){ result in
+            switch result {
+                case .success(let isSuccess):
+                    self.outputUpdateWatchListMovies?.didUpdateWatchListMovies(isSuccess: isSuccess)
+                case .failure(let error):
+                    print(error.localizedDescription)
+                    self.outputUpdateWatchListMovies?.didFailToUpdateWatchListMovies(error: error)
             }
         }
     }

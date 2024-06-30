@@ -10,12 +10,21 @@ import Foundation
 protocol MovieViewModelOutput: AnyObject {
     func didFetchMovies(movies: ListMovies)
     func didFetchWatchListMovies(movies: ListMovies)
-    func didUpdateWatchListMovies(isSuccess: Bool)
     func didFailToFetchMovies(error: Error)
 }
 
 protocol MovieDetailViewModelOutput: AnyObject {
     func didFetchMovieDetail(movie: Movie)
     func didFailToFetchMovieDetail(error: Error)
+}
+
+protocol MovieVideosViewModelOutput: AnyObject {
+    func didFetchMovieVideos(videos: Videos)
+    func didFailToFetchMovieVideos(error: Error)
+}
+
+protocol MovieUpdateWatchListViewModelOutput: AnyObject {
+    func didUpdateWatchListMovies(isSuccess: Bool)
+    func didFailToUpdateWatchListMovies(error: Error)
 }
 
