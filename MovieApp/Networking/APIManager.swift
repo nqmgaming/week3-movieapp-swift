@@ -58,7 +58,6 @@ class APIManager : MovieService {
         ]
 
         let url = URL(string: "\(Constants.BASE_URL)/account/\(Constants.USER_ID)/watchlist/movies")!
-        print(url)
 
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -94,7 +93,48 @@ class APIManager : MovieService {
         }.resume()
     }
 
-    func updateWatchListMovies(movie: Movie, completion: @escaping (Result<Bool, Error>) -> Void) {
+    func fetchMovieDetail(movieID: Int, completion: @escaping (Swift.Result<Movie, Error>) -> Void) {
+        let headers = [
+            "accept": "application/json"
+        ]
+
+        let url = URL(string: "\(Constants.BASE_URL)/movie/\(movieID)?api_key=\(Constants.API_KEY)")!
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.allHTTPHeaderFields = headers
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print(error.localizedDescription)
+                completion(.failure(error))
+            }
+
+            guard response is HTTPURLResponse else {
+                print("Invalid response")
+                let unknowError = NSError(domain: "Unknow", code: 0, userInfo: nil)
+                completion(.failure(unknowError))
+                return
+            }
+
+            do {
+                if let data = data {
+                    let decoder = JSONDecoder()
+                    let movie = try decoder.decode(Movie.self, from: data)
+                    completion(.success(movie))
+                }else {
+                    print("No data")
+                    let parsingError = NSError(domain: "No data Error", code: 0)
+                    completion(.failure(parsingError))
+                }
+            }catch {
+                print(error.localizedDescription)
+                completion(.failure(error))
+            }
+        }.resume()
+    }
+
+    func updateWatchListMovies(movie: Movie, completion: @escaping (Swift.Result<Bool, Error>) -> Void) {
         let headers = [
             "accept": "application/json",
             "content-type": "application/json",
@@ -134,7 +174,7 @@ class APIManager : MovieService {
                 return
             }
 
-            guard let httpResponse = response as? HTTPURLResponse else {
+            guard response is HTTPURLResponse else {
                 print("Invalid response")
                 let unknownError = NSError(domain: "Unknown", code: 0, userInfo: nil)
                 completion(.failure(unknownError))
@@ -157,5 +197,47 @@ class APIManager : MovieService {
             }
         }.resume()
     }
+
+    func fetchMovieVideos(movieID: Int, completion: @escaping (Swift.Result<Videos, Error>) -> Void) {
+        let headers = [
+            "accept": "application/json"
+        ]
+
+        let url = URL(string: "\(Constants.BASE_URL)/movie/\(movieID)/videos?api_key=\(Constants.API_KEY)")!
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.allHTTPHeaderFields = headers
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print(error.localizedDescription)
+                completion(.failure(error))
+            }
+
+            guard response is HTTPURLResponse else {
+                print("Invalid response")
+                let unknowError = NSError(domain: "Unknow", code: 0, userInfo: nil)
+                completion(.failure(unknowError))
+                return
+            }
+
+            do {
+                if let data = data {
+                    let decoder = JSONDecoder()
+                    let videos = try decoder.decode(Videos.self, from: data)
+                    completion(.success(videos))
+                }else {
+                    print("No data")
+                    let parsingError = NSError(domain: "No data Error", code: 0)
+                    completion(.failure(parsingError))
+                }
+            }catch {
+                print(error.localizedDescription)
+                completion(.failure(error))
+            }
+        }.resume()
+    }
+
 
 }

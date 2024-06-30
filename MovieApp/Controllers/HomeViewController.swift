@@ -4,6 +4,7 @@ class HomeViewController: UIViewController, MovieViewModelOutput {
     func didFetchWatchListMovies(movies: ListMovies) {
         guard let movie = movies.results else { return }
         watchList = movie
+        self.watchlistMovieIDs = Set(watchList.map { $0.id })
         DispatchQueue.main.async {
             self.collectionViewTrending.reloadData()
         }
@@ -64,10 +65,14 @@ class HomeViewController: UIViewController, MovieViewModelOutput {
         viewModel.fetchTrendingMovies()
         setupUI()
         layoutUI()
-
-        watchlistMovieIDs = Set(watchList.map { $0.id })
         collectionViewTrending.reloadData()
     }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
+    }
+
 
     // Removed the call from viewDidLayoutSubviews, it's better to keep it in one place
     override func viewDidLayoutSubviews() {
@@ -91,7 +96,7 @@ extension HomeViewController {
         NSLayoutConstraint.activate([
             movieLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
             movieLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-
+            
             collectionViewTrending.topAnchor.constraint(equalTo: movieLabel.bottomAnchor, constant: 20),
             collectionViewTrending.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionViewTrending.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -123,8 +128,12 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        print("Select item at index: \(indexPath.row)")
-        navigationController?.pushViewController(DetailViewController(movie: trendingMovies[indexPath.row]), animated: true)
+
+        let movie = trendingMovies[indexPath.row]
+        let detailViewController = DetailViewController(movie: movie, viewModel: viewModel)
+        detailViewController.title = movie.title
+        detailViewController.hidesBottomBarWhenPushed = true
+        navigationController?.pushViewController(detailViewController, animated: true)
     }
 
 

@@ -14,3 +14,8 @@ protocol MovieViewModelOutput: AnyObject {
     func didFailToFetchMovies(error: Error)
 }
 
+protocol MovieDetailViewModelOutput: AnyObject {
+    func didFetchMovieDetail(movie: Movie)
+    func didFailToFetchMovieDetail(error: Error)
+}
+

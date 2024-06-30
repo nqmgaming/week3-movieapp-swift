@@ -1,14 +1,3 @@
-//
-//  Movie.swift
-//  MovieApp
-//
-//  Created by Nguyen Quang Minh on 27/6/24.
-//
-
-// This file was generated from JSON Schema using quicktype, do not modify it directly.
-// To parse the JSON, add this file to your project and do:
-//
-//   let listMovies = try ListMovies(json)
 
 import Foundation
 
@@ -37,6 +26,7 @@ struct Movie: Codable {
     let video: Bool?
     let voteAverage: VoteAverage
     let voteCount: Int?
+    let runtime: Int?
 
     var posterURL: URL? {
         return URL(string: "https://image.tmdb.org/t/p/w500\(posterPath ?? "")")
@@ -62,6 +52,51 @@ struct Movie: Codable {
         case video
         case voteAverage = "vote_average"
         case voteCount = "vote_count"
+        case runtime
+    }
+
+    func getVoteAverage() -> String {
+        switch voteAverage {
+            case .double(let value):
+                return String(format: "%.1f", value)
+            case .integer(let value):
+                return String(value)
+        }
+    }
+
+    func getTitle() -> String {
+        return title ?? originalTitle ?? ""
+    }
+
+    func getReleaseDate() -> String {
+        return releaseDate ?? ""
+    }
+
+    func getRuntime() -> String {
+        guard let runtime = runtime else {
+            return ""
+        }
+        let hours = runtime / 60
+        let minutes = runtime % 60
+        return "\(hours)h \(minutes)min"
+    }
+
+    func getFormatDate() -> String {
+        // Example: 2021-06-24 -> 24 June 2021
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        if let date = formatter.date(from: releaseDate ?? "") {
+            formatter.dateFormat = "dd MMMM yyyy"
+            return formatter.string(from: date)
+        }
+        return ""
+    }
+
+    func getDesc() -> String {
+        if overview == "" {
+            return "No description available"
+        }
+        return "Description: \(overview ?? "")"
     }
 }
 
