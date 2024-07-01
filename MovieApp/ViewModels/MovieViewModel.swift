@@ -32,6 +32,12 @@ class MovieViewModel {
         movieService.fetchWatchListMovies{ result in
             switch result {
                 case .success(let movies):
+
+                    // save watchlist movies to user defaults
+                    let encoder = JSONEncoder()
+                    if let encoded = try? encoder.encode(movies.results) {
+                        UserDefaults.standard.set(encoded, forKey: "watchlist")
+                    }
                     self.outputMovies?.didFetchWatchListMovies(movies: movies)
                 case .failure(let error):
                     print(error.localizedDescription)
@@ -69,6 +75,24 @@ class MovieViewModel {
             switch result {
                 case .success(let isSuccess):
                     print(isSuccess, isRemoved)
+                    // update watchlist in user defaults
+                    if isRemoved {
+                        if let watchlistData = UserDefaults.standard.data(forKey: "watchlist") {
+                            var watchlistMovies = try? JSONDecoder().decode([Movie].self, from: watchlistData)
+                            watchlistMovies = watchlistMovies?.filter { $0.id != movie.id }
+                            if let encoded = try? JSONEncoder().encode(watchlistMovies) {
+                                UserDefaults.standard.set(encoded, forKey: "watchlist")
+                            }
+                        }
+                    } else {
+                        if let watchlistData = UserDefaults.standard.data(forKey: "watchlist") {
+                            var watchlistMovies = try? JSONDecoder().decode([Movie].self, from: watchlistData)
+                            watchlistMovies?.append(movie)
+                            if let encoded = try? JSONEncoder().encode(watchlistMovies) {
+                                UserDefaults.standard.set(encoded, forKey: "watchlist")
+                            }
+                        }
+                    }
                     self.outputUpdateWatchListMovies?.didUpdateWatchListMovies(isSuccess: isSuccess, isRemoved: isRemoved)
                 case .failure(let error):
                     print(error.localizedDescription)

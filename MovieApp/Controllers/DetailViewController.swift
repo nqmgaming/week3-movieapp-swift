@@ -519,3 +519,7 @@ extension UIImageView {
     }
 }
 
+// MARK: - NSUserDefault delete or save watchlist
+extension DetailViewController {
+    
+}

@@ -76,6 +76,7 @@ class HomeViewController: UIViewController, MovieViewModelOutput, MovieUpdateWat
         super.viewDidLoad()
         view.backgroundColor = .background
         showLoadingView()
+        getWatchListMovies()
         viewModel.fetchTrendingMovies(page: page)
         setupUI()
         layoutUI()
@@ -169,3 +170,16 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
     }
 }
 
+// MARK: - NSUserDefault get watchlist movies
+extension HomeViewController {
+    func getWatchListMovies() {
+        let watchListMovies = UserDefaults.standard.object(forKey: "watchlist") as? Data
+        if let watchListMovies = watchListMovies {
+            let decoder = JSONDecoder()
+            if let decodedMovies = try? decoder.decode([Movie].self, from: watchListMovies) {
+                watchList = decodedMovies
+                watchlistMovieIDs = Set(watchList.map { $0.id })
+            }
+        }
+    }
+}
