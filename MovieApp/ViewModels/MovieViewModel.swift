@@ -68,6 +68,7 @@ class MovieViewModel {
         movieService.updateWatchListMovies(movie: movie, watchlist: watchlist){ result in
             switch result {
                 case .success(let isSuccess):
+                    print(isSuccess, isRemoved)
                     self.outputUpdateWatchListMovies?.didUpdateWatchListMovies(isSuccess: isSuccess, isRemoved: isRemoved)
                 case .failure(let error):
                     print(error.localizedDescription)

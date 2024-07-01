@@ -112,6 +112,7 @@ class MovieCollectionViewCell: UICollectionViewCell {
         if isWatchList {
             self.isWatchList = true
             self.watchListLabel.text = "On my watchlist"
+            print(movie.title ?? "")
         }else {
             self.isWatchList = false
             self.watchListLabel.text = ""

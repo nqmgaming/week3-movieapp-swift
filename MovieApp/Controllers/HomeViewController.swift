@@ -8,8 +8,10 @@ class HomeViewController: UIViewController, MovieViewModelOutput, MovieUpdateWat
 
     func didFetchWatchListMovies(movies: ListMovies) {
         guard let movie = movies.results else { dismissLoadingView(); return }
+        watchList.removeAll() 
         watchList.append(contentsOf: movie)
         self.watchlistMovieIDs = Set(watchList.map { $0.id })
+        print("Watchlist: \(watchList.count)")
         DispatchQueue.main.async {
             self.collectionViewTrending.reloadData()
             self.dismissLoadingView()
@@ -18,6 +20,7 @@ class HomeViewController: UIViewController, MovieViewModelOutput, MovieUpdateWat
 
     func didUpdateWatchListMovies(isSuccess: Bool, isRemoved: Bool) {
         if isSuccess || isRemoved {
+            //update watchlist
             viewModel.fetchTrendingMovies()
         }
     }

@@ -98,6 +98,15 @@ struct Movie: Codable {
         }
         return "Description: \(overview ?? "")"
     }
+
+    func getRatingStar() -> Double {
+        switch voteAverage {
+            case .double(let value):
+                return value / 2
+            case .integer(let value):
+                return Double(value) / 2
+        }
+    }
 }
 
 // MARK: - VoteAverage

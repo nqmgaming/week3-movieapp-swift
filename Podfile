@@ -7,6 +7,5 @@ target 'MovieApp' do
 
   # Pods for MovieApp
   pod "Cosmos"
-  pod "TinyConstraints"
 
 end

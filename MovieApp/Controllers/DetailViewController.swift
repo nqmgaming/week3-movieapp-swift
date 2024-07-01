@@ -1,5 +1,4 @@
 import UIKit
-import TinyConstraints
 import Cosmos
 
 class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieVideosViewModelOutput, MovieUpdateWatchListViewModelOutput {
@@ -39,8 +38,10 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieV
             self.ratingLabel.attributedText = self.createRatingAttributedString()
             self.genresLabel.attributedText = self.createGenresAttributedString()
             self.durationLabel.attributedText = self.createDurationAttributedString()
+            self.ratingView.rating = movie.getRatingStar()
             self.descriptionLabel.text = movie.getDesc()
             self.genreCollectionView.reloadData()
+            self.dismissLoadingView()
         }
     }
 
@@ -168,7 +169,7 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieV
         view.settings.starSize = 20
         view.settings.starMargin = 5
         view.settings.updateOnTouch = false
-        view.rating = 4.1
+        view.rating = 0
         return view
     }()
 
@@ -320,6 +321,7 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieV
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        showLoadingView()
         view.backgroundColor = .background
         setup()
         layout()
