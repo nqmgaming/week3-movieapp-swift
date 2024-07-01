@@ -3,16 +3,6 @@ import Alamofire
 
 class APIManager: MovieService {
 
-    static let shared = APIManager()
-    private let session: Session
-
-    init() {
-        let configuration = URLSessionConfiguration.default
-        configuration.urlCache = URLCache.shared
-        configuration.requestCachePolicy = .returnCacheDataElseLoad
-        session = Session(configuration: configuration)
-    }
-
     func fetchTrendingMovies(page: Int = 1, completion: @escaping (Swift.Result<ListMovies, Error>) -> Void) {
         let headers: HTTPHeaders = [
             "accept": "application/json"
@@ -20,7 +10,7 @@ class APIManager: MovieService {
 
         let url = "\(Constants.BASE_URL)/trending/movie/week?&page=\(page)&api_key=\(Constants.API_KEY)"
 
-        session.request(url, headers: headers).responseDecodable(of: ListMovies.self) { response in
+        AF.request(url, headers: headers).responseDecodable(of: ListMovies.self) { response in
             switch response.result {
                 case .success(let listMovies):
                     completion(.success(listMovies))
@@ -40,9 +30,13 @@ class APIManager: MovieService {
 
         let url = "\(Constants.BASE_URL)/account/\(Constants.USER_ID)/watchlist/movies"
 
-        session.request(url, headers: headers).responseDecodable(of: ListMovies.self) { response in
+        AF.request(url, headers: headers).responseDecodable(of: ListMovies.self) { response in
             switch response.result {
                 case .success(let listMovies):
+                    let encoder = JSONEncoder()
+                    if let encoded = try? encoder.encode(listMovies.results) {
+                        UserDefaults.standard.set(encoded, forKey: "watchlist")
+                    }
                     completion(.success(listMovies))
                 case .failure(let error):
                     print(error.localizedDescription)
@@ -58,7 +52,7 @@ class APIManager: MovieService {
 
         let url = "\(Constants.BASE_URL)/movie/\(movieID)?api_key=\(Constants.API_KEY)"
 
-        session.request(url, headers: headers).responseDecodable(of: Movie.self) { response in
+        AF.request(url, headers: headers).responseDecodable(of: Movie.self) { response in
             switch response.result {
                 case .success(let movie):
                     completion(.success(movie))
@@ -85,7 +79,7 @@ class APIManager: MovieService {
             "watchlist": watchlist
         ]
 
-        session.request(url, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers).responseDecodable(of: UpdateWatchListResponse.self) { response in
+        AF.request(url, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers).responseDecodable(of: UpdateWatchListResponse.self) { response in
             switch response.result {
                 case .success(let result):
                     completion(.success(result.success))
@@ -103,7 +97,7 @@ class APIManager: MovieService {
 
         let url = "\(Constants.BASE_URL)/movie/\(movieID)/videos?api_key=\(Constants.API_KEY)"
 
-        session.request(url, headers: headers).responseDecodable(of: Videos.self) { response in
+        AF.request(url, headers: headers).responseDecodable(of: Videos.self) { response in
             switch response.result {
                 case .success(let videos):
                     completion(.success(videos))
