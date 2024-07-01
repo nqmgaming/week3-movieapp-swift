@@ -88,7 +88,6 @@ class APIManager: MovieService {
         session.request(url, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers).responseDecodable(of: UpdateWatchListResponse.self) { response in
             switch response.result {
                 case .success(let result):
-                    print(result)
                     completion(.success(result.success))
                 case .failure(let error):
                     print(error.localizedDescription)
