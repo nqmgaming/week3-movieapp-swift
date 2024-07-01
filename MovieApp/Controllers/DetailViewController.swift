@@ -1,9 +1,9 @@
 import UIKit
 import Cosmos
+import Kingfisher
 
 class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieVideosViewModelOutput, MovieUpdateWatchListViewModelOutput {
     func didUpdateWatchListMovies(isSuccess: Bool, isRemoved: Bool = false) {
-        print("Update watch list: \(isSuccess)")
         DispatchQueue.main.async {
             let message = isSuccess ? (isRemoved ? "Movie removed from watchlist" : "Movie added to watchlist") : "Failed to update watchlist"
             let alert = UIAlertController(title: isSuccess ? "Success" : "Error", message: message, preferredStyle: .alert)
@@ -457,15 +457,12 @@ extension DetailViewController: UICollectionViewDataSource, UICollectionViewDele
 // MARK: - Actions
 extension DetailViewController {
     @objc func watchTrailerButtonTapped() {
-        print("Watch trailer button tapped")
         // Open the trailer in YouTube app
         let youtubeURL = URL(string: "https://www.youtube.com/watch?v=\(movieVideo?.results.first?.key ?? "")")!
         UIApplication.shared.open(movieVideo?.getVideoURL() ?? youtubeURL, options: [:], completionHandler: nil)
     }
 
     @objc func watchListButtonTapped() {
-        print("Watchlist button tapped")
-
         // Update watchlist
         viewModel.updateWatchListMovies(movie: movie, watchlist: !isWatchList, isRemoved: isWatchList)
         self.isWatchList = !self.isWatchList
@@ -479,47 +476,13 @@ extension DetailViewController {
 
 extension UIImageView {
     func loadImage(from url: String?) {
-        guard let urlString = url, let url = URL(string: "https://image.tmdb.org/t/p/w500\(urlString)") else {
-            print("Invalid URL")
-            self.image = UIImage(named: "placeholder") // Placeholder image
-            return
-        }
-
-        let activityIndicator = UIActivityIndicatorView(style: .medium)
-        activityIndicator.center = self.center
-        activityIndicator.startAnimating()
-        self.addSubview(activityIndicator)
-
-        let task = URLSession.shared.dataTask(with: url) { data, _, error in
-            DispatchQueue.main.async {
-                activityIndicator.removeFromSuperview()
-                if let error = error {
-                    print("Error loading image: \(error.localizedDescription)")
-                    self.image = UIImage(named: "placeholder") // Placeholder image
-                    return
-                }
-
-                guard let data = data else {
-                    print("No data found")
-                    self.image = UIImage(named: "placeholder") // Placeholder image
-                    return
-                }
-
-                guard let image = UIImage(data: data) else {
-                    print("Unable to create image")
-                    self.image = UIImage(named: "placeholder") // Placeholder image
-                    return
-                }
-
-                self.image = image
-
-            }
-        }
-        task.resume()
+        guard let url = URL(string: "\(Constants.BASE_IMAGE_URL)\(url ?? "")") else { return }
+        self.kf.indicatorType = .activity
+        self.kf.setImage(with: url)
     }
 }
 
 // MARK: - NSUserDefault delete or save watchlist
 extension DetailViewController {
-    
+
 }

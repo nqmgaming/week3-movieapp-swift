@@ -11,7 +11,6 @@ class HomeViewController: UIViewController, MovieViewModelOutput, MovieUpdateWat
         watchList.removeAll() 
         watchList.append(contentsOf: movie)
         self.watchlistMovieIDs = Set(watchList.map { $0.id })
-        print("Watchlist: \(watchList.count)")
         DispatchQueue.main.async {
             self.collectionViewTrending.reloadData()
             self.dismissLoadingView()

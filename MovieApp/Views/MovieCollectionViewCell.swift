@@ -1,29 +1,17 @@
 import UIKit
+import Kingfisher
 
 class MovieCollectionViewCell: UICollectionViewCell {
     var posterPath: String? {
         didSet {
-            guard let posterPath = posterPath else { return }
-
-            if let imageURL = URL(string: "https://image.tmdb.org/t/p/w500\(posterPath)") {
-                URLSession.shared.dataTask(with: imageURL) { (data, response, error) in
-                    if let error = error {
-                        print(error.localizedDescription)
-                        return
-                    }
-
-                    if let data = data {
-                        DispatchQueue.main.async {
-                            self.movieImage.image = UIImage(data: data)
-                        }
-                    }
-                }.resume()
+            if let posterPath = posterPath {
+                let url = URL(string: Constants.BASE_IMAGE_URL + posterPath)
+                movieImage.kf.setImage(with: url)
             }
         }
     }
 
     let viewContainer: UIView = {
-
         let view = UIView()
         view.backgroundColor = .ssss
         return view
@@ -112,7 +100,6 @@ class MovieCollectionViewCell: UICollectionViewCell {
         if isWatchList {
             self.isWatchList = true
             self.watchListLabel.text = "On my watchlist"
-            print(movie.title ?? "")
         }else {
             self.isWatchList = false
             self.watchListLabel.text = ""

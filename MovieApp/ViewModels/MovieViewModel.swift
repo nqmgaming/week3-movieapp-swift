@@ -74,7 +74,7 @@ class MovieViewModel {
         movieService.updateWatchListMovies(movie: movie, watchlist: watchlist){ result in
             switch result {
                 case .success(let isSuccess):
-                    print(isSuccess, isRemoved)
+                    print("Update:  \(isSuccess), \(isRemoved) ")
                     // update watchlist in user defaults
                     if isRemoved {
                         if let watchlistData = UserDefaults.standard.data(forKey: "watchlist") {

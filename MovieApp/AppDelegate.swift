@@ -27,6 +27,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             window.makeKeyAndVisible()
         }
 
+        // Cache
+        let memoryCapacity = 500 * 1024 * 1024 // 500 MB
+        let diskCapacity = 500 * 1024 * 1024 // 500 MB
+        let cache = URLCache(memoryCapacity: memoryCapacity, diskCapacity: diskCapacity, diskPath: "myCache")
+
+        URLCache.shared = cache
+
         return true
     }
 }
