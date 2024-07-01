@@ -8,7 +8,8 @@ MovieApp is a Swift-based iOS application that allows users to explore trending 
 - **Watchlist Management**: Add or remove movies from your watchlist.
 - **Movie Details**: View detailed information about movies, including genres, ratings, and runtime.
 
-## Technical Details
+## Video Demo
+Link: [Video](https://share.cleanshot.com/fCQdZxln)
 
 ### Architecture
 - The app is built using the MVVM (Model-View-ViewModel) architecture pattern.
