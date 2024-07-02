@@ -20,8 +20,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let movieService: MovieService = APIManager()
         let viewModel = MovieViewModel(movieService: movieService)
         let homeViewController = HomeViewController(viewModel: viewModel)
-        homeViewController.title = "Home"
+        homeViewController.title = "Movies"
         UINavigationBar.appearance().tintColor = .white
+        UINavigationBar.appearance().barTintColor = .clear
         let navigationController = UINavigationController(rootViewController: homeViewController)
         window?.rootViewController = navigationController
         window?.makeKeyAndVisible()

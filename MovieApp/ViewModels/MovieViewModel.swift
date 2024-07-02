@@ -22,7 +22,6 @@ class MovieViewModel {
         movieService.fetchTrendingMovies(page: page){ result in
             switch result {
                 case .success(let movies):
-                    print("Update")
                     self.outputMovies?.didFetchMovies(movies: movies)
                 case .failure(let error):
                     print(error.localizedDescription)
@@ -37,7 +36,6 @@ class MovieViewModel {
                     // save watchlist movies to user defaults
                     let encoder = JSONEncoder()
                     if let encoded = try? encoder.encode(movies.results) {
-                        print(movies.results?.count)
                         UserDefaults.standard.set(encoded, forKey: "watchlist")
                     }
                     self.outputMovies?.didFetchWatchListMovies(movies: movies)

@@ -1,14 +1,14 @@
 import UIKit
 
 class HomeViewController: UIViewController, MovieViewModelOutput, MovieUpdateWatchListViewModelOutput {
-    
+
     func didFailToUpdateWatchListMovies(error: any Error) {
         print("Failed to update watch list: \(error.localizedDescription)")
     }
 
     func didFetchWatchListMovies(movies: ListMovies) {
         guard let movie = movies.results else { dismissLoadingView(); return }
-        watchList.removeAll() 
+        watchList.removeAll()
         watchList.append(contentsOf: movie)
         self.watchlistMovieIDs = Set(watchList.map { $0.id })
         DispatchQueue.main.async {
@@ -54,15 +54,6 @@ class HomeViewController: UIViewController, MovieViewModelOutput, MovieUpdateWat
         fatalError("init(coder:) has not been implemented")
     }
 
-    private let movieLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Movies"
-        label.textColor = .white
-        label.font = UIFont.boldSystemFont(ofSize: 24)
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-
     private let collectionViewTrending: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
@@ -73,6 +64,8 @@ class HomeViewController: UIViewController, MovieViewModelOutput, MovieUpdateWat
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        navigationController?.navigationBar.prefersLargeTitles = true
+        navigationController?.navigationBar.largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
         view.backgroundColor = .background
         showLoadingView()
         getWatchListMovies()
@@ -84,6 +77,8 @@ class HomeViewController: UIViewController, MovieViewModelOutput, MovieUpdateWat
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        navigationController?.navigationBar.prefersLargeTitles = true
+        navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
         navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
     }
 
@@ -102,16 +97,13 @@ extension HomeViewController {
         collectionViewTrending.dataSource = self
         collectionViewTrending.delegate = self
 
-        view.addSubview(movieLabel)
         view.addSubview(collectionViewTrending)
     }
 
     private func layoutUI() {
         NSLayoutConstraint.activate([
-            movieLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
-            movieLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
 
-            collectionViewTrending.topAnchor.constraint(equalTo: movieLabel.bottomAnchor, constant: 20),
+            collectionViewTrending.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             collectionViewTrending.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionViewTrending.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionViewTrending.bottomAnchor.constraint(equalTo: view.bottomAnchor)
@@ -146,7 +138,6 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
         let movie = trendingMovies[indexPath.row]
         let isWatchList = watchlistMovieIDs.contains(movie.id)
         let detailViewController = DetailViewController(movie: movie, viewModel: viewModel, isWatchList: isWatchList)
-        detailViewController.title = movie.title
         detailViewController.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(detailViewController, animated: true)
     }

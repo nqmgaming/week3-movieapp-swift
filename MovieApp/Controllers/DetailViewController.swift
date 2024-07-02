@@ -73,6 +73,22 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieV
         fatalError("init(coder:) has not been implemented")
     }
 
+    private let scrollView: UIScrollView = {
+        let scrollView = UIScrollView()
+        scrollView.showsVerticalScrollIndicator = false
+        // if screen large than content size, disable scroll
+        scrollView.alwaysBounceVertical = true
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        return scrollView
+    }()
+
+    private let contentView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
+
     private let backdropImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
@@ -286,7 +302,7 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieV
         button.layer.cornerRadius = 22
         button.isUserInteractionEnabled = true
         // Set font size to 18
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 16)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 14)
         return button
     }()
 
@@ -301,7 +317,7 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieV
         button.layer.borderColor = UIColor.white.cgColor
         button.isUserInteractionEnabled = true
         // Set font size to 18
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 16)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 14)
         return button
     }()
 
@@ -321,8 +337,11 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieV
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        navigationController?.navigationBar.prefersLargeTitles = false
+        navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "Back to Movies", style: .plain, target: nil, action: nil)
         showLoadingView()
         view.backgroundColor = .background
+        setupScrollView()
         setup()
         layout()
         style()
@@ -333,95 +352,118 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieV
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        navigationController?.navigationBar.prefersLargeTitles = false
         navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
+
+    }
+
+    private func setupScrollView() {
+        view.addSubview(scrollView)
+        scrollView.addSubview(contentView)
+
+        NSLayoutConstraint.activate([
+            scrollView.topAnchor.constraint(equalTo: view.topAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.widthAnchor.constraint(equalTo: view.widthAnchor),
+            scrollView.heightAnchor.constraint(equalTo: view.heightAnchor),
+
+            contentView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: 0),
+            contentView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -50),
+            contentView.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
+            contentView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
+            contentView.heightAnchor.constraint(equalTo: scrollView.frameLayoutGuide.heightAnchor)
+        ])
     }
 
     func setup() {
-        view.addSubview(backdropImageView)
-        view.addSubview(titleLable)
-        view.addSubview(genreCollectionView)
-        view.addSubview(ratingLabel)
-        view.addSubview(ratingView)
-        view.addSubview(genresLabel)
-        view.addSubview(durationLabel)
-        view.addSubview(releasedDateLabel)
-        view.addSubview(containerButtonStackView)
-        view.addSubview(descriptionLabel)
+        contentView.addSubview(backdropImageView)
+        contentView.addSubview(titleLable)
+        contentView.addSubview(genreCollectionView)
+        contentView.addSubview(ratingLabel)
+        contentView.addSubview(ratingView)
+        contentView.addSubview(genresLabel)
+        contentView.addSubview(durationLabel)
+        contentView.addSubview(releasedDateLabel)
+        contentView.addSubview(containerButtonStackView)
+        contentView.addSubview(descriptionLabel)
     }
 
 
     func layout() {
         backdropImageView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            backdropImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
-            backdropImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            backdropImageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            backdropImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
+            backdropImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            backdropImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             backdropImageView.heightAnchor.constraint(equalToConstant: 200)
         ])
 
         titleLable.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             titleLable.topAnchor.constraint(equalTo: backdropImageView.bottomAnchor, constant: 10),
-            titleLable.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
-            titleLable.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10)
+            titleLable.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
+            titleLable.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10)
         ])
 
         genreCollectionView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             genreCollectionView.topAnchor.constraint(equalTo: titleLable.bottomAnchor, constant: 10),
-            genreCollectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
-            genreCollectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            genreCollectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
+            genreCollectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             genreCollectionView.heightAnchor.constraint(equalToConstant: 30)
         ])
 
         ratingLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             ratingLabel.topAnchor.constraint(equalTo: genreCollectionView.bottomAnchor, constant: 20),
-            ratingLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
-            ratingLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10)
+            ratingLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
+            ratingLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10)
         ])
 
         ratingView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             ratingView.topAnchor.constraint(equalTo: ratingLabel.bottomAnchor, constant: 10),
-            ratingView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
-            ratingView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10)
+            ratingView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
+            ratingView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10)
         ])
 
         genresLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             genresLabel.topAnchor.constraint(equalTo: ratingView.bottomAnchor, constant: 20),
-            genresLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
-            genresLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10)
+            genresLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
+            genresLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10)
         ])
 
         durationLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             durationLabel.topAnchor.constraint(equalTo: genresLabel.bottomAnchor, constant: 10),
-            durationLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
-            durationLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10)
+            durationLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
+            durationLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10)
         ])
 
         releasedDateLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             releasedDateLabel.topAnchor.constraint(equalTo: durationLabel.bottomAnchor, constant: 10),
-            releasedDateLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
-            releasedDateLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10)
+            releasedDateLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
+            releasedDateLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10)
         ])
 
         containerButtonStackView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             containerButtonStackView.topAnchor.constraint(equalTo: releasedDateLabel.bottomAnchor, constant: 20),
-            containerButtonStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
-            containerButtonStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
+            containerButtonStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
+            containerButtonStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
             containerButtonStackView.heightAnchor.constraint(equalToConstant: 45)
         ])
 
         descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             descriptionLabel.topAnchor.constraint(equalTo: containerButtonStackView.bottomAnchor, constant: 20),
-            descriptionLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
-            descriptionLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10)
+            descriptionLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
+            descriptionLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10)
         ])
     }
 
