@@ -22,7 +22,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let homeViewController = HomeViewController(viewModel: viewModel)
         homeViewController.title = "Movies"
         UINavigationBar.appearance().tintColor = .white
-        UINavigationBar.appearance().barTintColor = .clear
+        UINavigationBar.appearance().barTintColor = .background
         let navigationController = UINavigationController(rootViewController: homeViewController)
         window?.rootViewController = navigationController
         window?.makeKeyAndVisible()

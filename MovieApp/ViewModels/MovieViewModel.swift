@@ -32,7 +32,6 @@ class MovieViewModel {
         movieService.fetchWatchListMovies{ result in
             switch result {
                 case .success(let movies):
-                    print("Update")
                     // save watchlist movies to user defaults
                     let encoder = JSONEncoder()
                     if let encoded = try? encoder.encode(movies.results) {
@@ -74,7 +73,6 @@ class MovieViewModel {
         movieService.updateWatchListMovies(movie: movie, watchlist: watchlist){ result in
             switch result {
                 case .success(let isSuccess):
-                    print("Update:  \(isSuccess), \(isRemoved) ")
                     // update watchlist in user defaults
                     if isRemoved {
                         if let watchlistData = UserDefaults.standard.data(forKey: "watchlist") {
