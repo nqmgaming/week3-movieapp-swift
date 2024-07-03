@@ -10,5 +10,7 @@ target 'MovieApp' do
   pod "Cosmos"
   pod "Alamofire"
   pod "Kingfisher"
+  pod "RxSwift"
+  pod "Hero"
 
 end

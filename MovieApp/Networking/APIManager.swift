@@ -45,6 +45,27 @@ class APIManager: MovieService {
         }
     }
 
+    func fetchFavoriteMovies(completion: @escaping (Swift.Result<ListMovies, any Error>) -> Void) {
+        let headers: HTTPHeaders = [
+            "accept": "application/json",
+            "content-type": "application/json",
+            "Authorization": "\(Constants.TOKEN)"
+        ]
+
+        let url = "\(Constants.BASE_URL)/account/\(Constants.USER_ID)/favorite/movies"
+
+        AF.request(url, headers: headers).responseDecodable(of: ListMovies.self) { response in
+            switch response.result {
+                case .success(let listMovies):
+                    completion(.success(listMovies))
+                case .failure(let error):
+                    print(error.localizedDescription)
+                    completion(.failure(error))
+            }
+        }
+
+    }
+
     func fetchMovieDetail(movieID: Int, completion: @escaping (Swift.Result<Movie, Error>) -> Void) {
         let headers: HTTPHeaders = [
             "accept": "application/json"
@@ -101,6 +122,32 @@ class APIManager: MovieService {
             switch response.result {
                 case .success(let videos):
                     completion(.success(videos))
+                case .failure(let error):
+                    print(error.localizedDescription)
+                    completion(.failure(error))
+            }
+        }
+    }
+
+    func updateFavoriteMovies(movie: Movie, favorite: Bool, completion: @escaping (Swift.Result<Bool, any Error>) -> Void) {
+        let headers: HTTPHeaders = [
+            "accept": "application/json",
+            "content-type": "application/json",
+            "Authorization": "\(Constants.TOKEN)"
+        ]
+
+        let url = "\(Constants.BASE_URL)/account/\(Constants.USER_ID)/favorite"
+
+        let parameters: [String: Any] = [
+            "media_type": "movie",
+            "media_id": movie.id,
+            "favorite": favorite
+        ]
+
+        AF.request(url, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers).responseDecodable(of: UpdateWatchListResponse.self) { response in
+            switch response.result {
+                case .success(let result):
+                    completion(.success(result.success))
                 case .failure(let error):
                     print(error.localizedDescription)
                     completion(.failure(error))

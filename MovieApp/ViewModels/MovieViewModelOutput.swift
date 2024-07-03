@@ -10,6 +10,7 @@ import Foundation
 protocol MovieViewModelOutput: AnyObject {
     func didFetchMovies(movies: ListMovies)
     func didFetchWatchListMovies(movies: ListMovies)
+    func didFetchFavoriteMovies(movies: ListMovies)
     func didFailToFetchMovies(error: Error)
 }
 
@@ -26,5 +27,10 @@ protocol MovieVideosViewModelOutput: AnyObject {
 protocol MovieUpdateWatchListViewModelOutput: AnyObject {
     func didUpdateWatchListMovies(isSuccess: Bool, isRemoved: Bool)
     func didFailToUpdateWatchListMovies(error: Error)
+}
+
+protocol MovieUpdateFavoriteViewModelOutput: AnyObject {
+    func didUpdateFavoriteMovies(isSuccess: Bool, isRemoved: Bool)
+    func didFailToUpdateFavoriteMovies(error: Error)
 }
 

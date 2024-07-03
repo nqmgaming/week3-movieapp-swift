@@ -65,6 +65,7 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieV
         self.viewModel.outputMovieDetail = self
         self.viewModel.outputMovieVideos = self
         self.viewModel.outputUpdateWatchListMovies = self
+        //        self.viewModel.outputFavoriteMovies = self
         self.watchTrailerButton.addTarget(self, action: #selector(watchTrailerButtonTapped), for: .touchUpInside)
         self.watchListButton.addTarget(self, action: #selector(watchListButtonTapped), for: .touchUpInside)
     }
@@ -144,6 +145,22 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieV
         return collectionView
     }()
 
+    private lazy var containerRatingAndFavoriteStackView: UIStackView = {
+        let stackView = UIStackView(arrangedSubviews: [containerRatingStackView, addToFavoriteButton])
+        stackView.axis = .horizontal
+        stackView.distribution = .fill
+        stackView.spacing = 10
+        return stackView
+    }()
+
+    private lazy var containerRatingStackView: UIStackView = {
+        let stackView = UIStackView(arrangedSubviews: [ratingLabel, ratingView])
+        stackView.axis = .vertical
+        stackView.distribution = .fill
+        stackView.spacing = 10
+        return stackView
+    }()
+
     private lazy var ratingLabel: UILabel = {
         let label = UILabel()
         label.attributedText = createRatingAttributedString()
@@ -187,6 +204,16 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieV
         view.settings.updateOnTouch = false
         view.rating = 0
         return view
+    }()
+
+    private lazy var addToFavoriteButton: UIButton = {
+        let button = UIButton()
+
+        let heartImage = UIImage(systemName: "heart")
+        heartImage?.withTintColor(.white, renderingMode: .alwaysOriginal)
+        heartImage?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 20, weight: .bold))
+        button.setImage(heartImage, for: .normal)
+        return button
     }()
 
     private lazy var genresLabel: UILabel = {
@@ -338,7 +365,6 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieV
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationController?.navigationBar.prefersLargeTitles = false
-        navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "Back to Movies", style: .plain, target: nil, action: nil)
         showLoadingView()
         view.backgroundColor = .background
         setupScrollView()
@@ -382,8 +408,7 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieV
         contentView.addSubview(backdropImageView)
         contentView.addSubview(titleLable)
         contentView.addSubview(genreCollectionView)
-        contentView.addSubview(ratingLabel)
-        contentView.addSubview(ratingView)
+        contentView.addSubview(containerRatingAndFavoriteStackView)
         contentView.addSubview(genresLabel)
         contentView.addSubview(durationLabel)
         contentView.addSubview(releasedDateLabel)
@@ -416,23 +441,22 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieV
             genreCollectionView.heightAnchor.constraint(equalToConstant: 30)
         ])
 
-        ratingLabel.translatesAutoresizingMaskIntoConstraints = false
+        containerRatingAndFavoriteStackView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            ratingLabel.topAnchor.constraint(equalTo: genreCollectionView.bottomAnchor, constant: 20),
-            ratingLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
-            ratingLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10)
+            containerRatingAndFavoriteStackView.topAnchor.constraint(equalTo: genreCollectionView.bottomAnchor, constant: 20),
+            containerRatingAndFavoriteStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
+            containerRatingAndFavoriteStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
         ])
 
-        ratingView.translatesAutoresizingMaskIntoConstraints = false
+        addToFavoriteButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            ratingView.topAnchor.constraint(equalTo: ratingLabel.bottomAnchor, constant: 10),
-            ratingView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
-            ratingView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10)
+            addToFavoriteButton.widthAnchor.constraint(equalToConstant: 30),
+            addToFavoriteButton.heightAnchor.constraint(equalToConstant: 30)
         ])
 
         genresLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            genresLabel.topAnchor.constraint(equalTo: ratingView.bottomAnchor, constant: 20),
+            genresLabel.topAnchor.constraint(equalTo: containerRatingAndFavoriteStackView.bottomAnchor, constant: 30),
             genresLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
             genresLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10)
         ])
@@ -511,8 +535,11 @@ extension DetailViewController {
         DispatchQueue.main.async {
             self.watchListButton.setTitle("\(self.isWatchList ? "Remove from Watchlist" : "Add to Watchlist")", for: .normal)
         }
+    }
 
-
+    @objc func didTapFavoriteButton() {
+//        let favoriteListVC = FavoriteListViewController(favoriteList: favoriteList, viewModel: viewModel)
+//        navigationController?.pushViewController(favoriteListVC, animated: true)
     }
 }
 

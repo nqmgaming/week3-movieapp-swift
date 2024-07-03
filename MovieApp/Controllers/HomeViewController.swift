@@ -1,6 +1,25 @@
 import UIKit
 
-class HomeViewController: UIViewController, MovieViewModelOutput, MovieUpdateWatchListViewModelOutput {
+class HomeViewController: UIViewController, MovieViewModelOutput, MovieUpdateWatchListViewModelOutput, MovieUpdateFavoriteViewModelOutput {
+    func didUpdateFavoriteMovies(isSuccess: Bool, isRemoved: Bool) {
+
+    }
+    
+    func didFailToUpdateFavoriteMovies(error: any Error) {
+        
+    }
+    
+    func didFetchFavoriteMovies(movies: ListMovies) {
+        guard let movie = movies.results else { dismissLoadingView(); return }
+        favoriteList.removeAll()
+        favoriteList.append(contentsOf: movie)
+        self.favoriteMovieIDs = Set(favoriteList.map { $0.id })
+        DispatchQueue.main.async {
+            self.collectionViewTrending.reloadData()
+            self.dismissLoadingView()
+        }
+    }
+    
 
     func didFailToUpdateWatchListMovies(error: any Error) {
         print("Failed to update watch list: \(error.localizedDescription)")
@@ -39,7 +58,9 @@ class HomeViewController: UIViewController, MovieViewModelOutput, MovieUpdateWat
 
     var trendingMovies: [Movie] = []
     var watchList: [Movie] = []
+    var favoriteList: [Movie] = []
     var watchlistMovieIDs: Set<Int> = []
+    var favoriteMovieIDs: Set<Int> = []
     var page = 1
 
     private let viewModel: MovieViewModel
@@ -59,16 +80,31 @@ class HomeViewController: UIViewController, MovieViewModelOutput, MovieUpdateWat
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.backgroundColor = .clear
         collectionView.translatesAutoresizingMaskIntoConstraints = false
+
         return collectionView
+    }()
+
+    // refresh control
+    private let refreshControl: UIRefreshControl = {
+        let refreshControl = UIRefreshControl()
+        refreshControl.tintColor = .systemBlue
+        return refreshControl
     }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationController?.navigationBar.largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
+
+        // create button on navigation bar to show favorite list
+        let favoriteButton = UIBarButtonItem(image: UIImage(systemName: "heart.fill"), style: .plain, target: self, action: #selector(didTapFavoriteButton))
+        favoriteButton.tintColor = .systemBlue
+        navigationItem.rightBarButtonItem = favoriteButton
+
         view.backgroundColor = .background
         showLoadingView()
         getWatchListMovies()
+        getFavoriteMovies()
         viewModel.fetchTrendingMovies(page: page)
         setupUI()
         layoutUI()
@@ -96,6 +132,10 @@ extension HomeViewController {
         collectionViewTrending.register(MovieCollectionViewCell.self, forCellWithReuseIdentifier: "cell")
         collectionViewTrending.dataSource = self
         collectionViewTrending.delegate = self
+
+        // add refresh control to collection view
+        collectionViewTrending.refreshControl = refreshControl
+        refreshControl.addTarget(self, action: #selector(refresh), for: .valueChanged)
 
         view.addSubview(collectionViewTrending)
     }
@@ -138,6 +178,7 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
         let movie = trendingMovies[indexPath.row]
         let isWatchList = watchlistMovieIDs.contains(movie.id)
         let detailViewController = DetailViewController(movie: movie, viewModel: viewModel, isWatchList: isWatchList)
+        detailViewController.title = movie.title
         detailViewController.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(detailViewController, animated: true)
     }
@@ -158,6 +199,17 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
             viewModel.fetchTrendingMovies(page: page)
         }
     }
+
+    // pull to refresh
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        if let refreshControl = scrollView.refreshControl, refreshControl.isRefreshing {
+            refreshControl.endRefreshing()
+            page = 1
+            viewModel.fetchTrendingMovies(page: page)
+        }
+    }
+
+
 }
 
 // MARK: - NSUserDefault get watchlist movies
@@ -171,5 +223,31 @@ extension HomeViewController {
                 watchlistMovieIDs = Set(watchList.map { $0.id })
             }
         }
+    }
+
+    func getFavoriteMovies() {
+        let favoriteMovies = UserDefaults.standard.object(forKey: "favorite") as? Data
+        if let favoriteMovies = favoriteMovies {
+            let decoder = JSONDecoder()
+            if let decodedMovies = try? decoder.decode([Movie].self, from: favoriteMovies) {
+                favoriteList = decodedMovies
+                favoriteMovieIDs = Set(favoriteList.map { $0.id })
+            }
+        }
+    }
+
+}
+
+// MARK: - Actions
+extension HomeViewController {
+    @objc func didTapFavoriteButton() {
+        let favoriteViewController = FavoriteListViewController(favoriteList: favoriteList, viewModel: viewModel)
+        favoriteViewController.hidesBottomBarWhenPushed = true
+        navigationController?.pushViewController(favoriteViewController, animated: true)
+    }
+
+    @objc func refresh() {
+        page = 1
+        viewModel.fetchTrendingMovies(page: page)
     }
 }

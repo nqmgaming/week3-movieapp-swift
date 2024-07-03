@@ -1,24 +1,32 @@
 PODS:
   - Alamofire (5.9.1)
   - Cosmos (25.0.1)
+  - Hero (1.6.3)
   - Kingfisher (7.12.0)
+  - RxSwift (6.7.1)
 
 DEPENDENCIES:
   - Alamofire
   - Cosmos
+  - Hero
   - Kingfisher
+  - RxSwift
 
 SPEC REPOS:
   trunk:
     - Alamofire
     - Cosmos
+    - Hero
     - Kingfisher
+    - RxSwift
 
 SPEC CHECKSUMS:
   Alamofire: f36a35757af4587d8e4f4bfa223ad10be2422b8c
   Cosmos: 02db0a1c953107049bfd2d7af19ceef55ecb7e98
+  Hero: 419d43384355b3168512bd8ac6a33aadd3dc575b
   Kingfisher: 53a10ea35051a436b5fb626ca2dd8f3144d755e9
+  RxSwift: b9a93a26031785159e11abd40d1a55bcb8057e52
 
-PODFILE CHECKSUM: a5cb4bdee589edf99740d52c489bda2c979b8cd1
+PODFILE CHECKSUM: 1f20b5e142801ba1ad3d45b85a5663d43b70ecbf
 
 COCOAPODS: 1.15.2

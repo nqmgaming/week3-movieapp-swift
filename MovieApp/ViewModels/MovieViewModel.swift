@@ -13,6 +13,7 @@ class MovieViewModel {
     weak var outputMovieDetail: MovieDetailViewModelOutput?
     weak var outputMovieVideos: MovieVideosViewModelOutput?
     weak var outputUpdateWatchListMovies: MovieUpdateWatchListViewModelOutput?
+    weak var outputFavoriteMovies: MovieUpdateFavoriteViewModelOutput?
 
     init(movieService: MovieService) {
         self.movieService = movieService
@@ -38,6 +39,21 @@ class MovieViewModel {
                         UserDefaults.standard.set(encoded, forKey: "watchlist")
                     }
                     self.outputMovies?.didFetchWatchListMovies(movies: movies)
+                case .failure(let error):
+                    print(error.localizedDescription)
+                    self.outputMovies?.didFailToFetchMovies(error: error)
+            }
+        }
+
+        movieService.fetchFavoriteMovies{ result in
+            switch result {
+                case .success(let movies):
+                    // save favorite movies to user defaults
+                    let encoder = JSONEncoder()
+                    if let encoded = try? encoder.encode(movies.results) {
+                        UserDefaults.standard.set(encoded, forKey: "favorite")
+                    }
+                    self.outputMovies?.didFetchFavoriteMovies(movies: movies)
                 case .failure(let error):
                     print(error.localizedDescription)
                     self.outputMovies?.didFailToFetchMovies(error: error)
@@ -95,6 +111,36 @@ class MovieViewModel {
                 case .failure(let error):
                     print(error.localizedDescription)
                     self.outputUpdateWatchListMovies?.didFailToUpdateWatchListMovies(error: error)
+            }
+        }
+    }
+
+    func updateFavoriteMovies(movie: Movie, favorite: Bool){
+        movieService.updateFavoriteMovies(movie: movie, favorite: favorite){ result in
+            switch result {
+                case .success(let isSuccess):
+                    // update favorite in user defaults
+                    if favorite {
+                        if let favoriteData = UserDefaults.standard.data(forKey: "favorite") {
+                            var favoriteMovies = try? JSONDecoder().decode([Movie].self, from: favoriteData)
+                            favoriteMovies?.append(movie)
+                            if let encoded = try? JSONEncoder().encode(favoriteMovies) {
+                                UserDefaults.standard.set(encoded, forKey: "favorite")
+                            }
+                        }
+                    } else {
+                        if let favoriteData = UserDefaults.standard.data(forKey: "favorite") {
+                            var favoriteMovies = try? JSONDecoder().decode([Movie].self, from: favoriteData)
+                            favoriteMovies = favoriteMovies?.filter { $0.id != movie.id }
+                            if let encoded = try? JSONEncoder().encode(favoriteMovies) {
+                                UserDefaults.standard.set(encoded, forKey: "favorite")
+                            }
+                        }
+                    }
+                    self.outputFavoriteMovies?.didUpdateFavoriteMovies(isSuccess: isSuccess, isRemoved: !favorite)
+                case .failure(let error):
+                    print(error.localizedDescription)
+                    self.outputFavoriteMovies?.didFailToUpdateFavoriteMovies(error: error)
             }
         }
     }
