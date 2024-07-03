@@ -7,7 +7,29 @@
 
 import UIKit
 
-class FavoriteListViewController: UIViewController, MovieUpdateFavoriteViewModelOutput {
+class FavoriteListViewController: UIViewController, MovieUpdateFavoriteViewModelOutput, MovieViewModelOutput {
+    func didFetchMovies(movies: ListMovies) {
+
+    }
+
+    func didFetchWatchListMovies(movies: ListMovies) {
+
+    }
+
+    func didFetchFavoriteMovies(movies: ListMovies) {
+        guard let movie = movies.results else { return }
+        favoriteList.removeAll()
+        favoriteList.append(contentsOf: movie)
+        self.watchListId = Set(favoriteList.map { $0.id })
+        DispatchQueue.main.async {
+            self.favoriteTableView.reloadData()
+        }
+    }
+
+    func didFailToFetchMovies(error: any Error) {
+        print("Failed to fetch movies: \(error.localizedDescription)")
+    }
+
 
     func didUpdateFavoriteMovies(isSuccess: Bool, isRemoved: Bool) {
         if isSuccess || isRemoved {
@@ -32,28 +54,36 @@ class FavoriteListViewController: UIViewController, MovieUpdateFavoriteViewModel
         return tableView
     }()
 
+    // refresh control
+    private let refreshControl = UIRefreshControl()
+
     var favoriteList: [Movie]
+    var watchListId: Set<Int>
     private let viewModel: MovieViewModel
 
-    init(favoriteList: [Movie], viewModel: MovieViewModel) {
+    init(favoriteList: [Movie], viewModel: MovieViewModel, watchListId: Set<Int>) {
         self.favoriteList = favoriteList
+        self.watchListId = watchListId
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
+        viewModel.outputFavoriteMovies = self
+        viewModel.outputMovies = self
+        viewModel.fetchTrendingMovies()
         title = "Favorite"
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-
-
-
         navigationController?.navigationBar.prefersLargeTitles = false
         navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
         view.backgroundColor = .background
+
+
+        setup()
 
 
     }
@@ -72,11 +102,6 @@ class FavoriteListViewController: UIViewController, MovieUpdateFavoriteViewModel
         navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
     }
 
-    @objc func didTapFavoriteButton() {
-        let favoriteListVC = FavoriteListViewController(favoriteList: favoriteList, viewModel: viewModel)
-        navigationController?.pushViewController(favoriteListVC, animated: true)
-    }
-
     func getFavoriteMovies() {
         // viewModel.fetchFavoriteMovies()
     }
@@ -85,15 +110,12 @@ class FavoriteListViewController: UIViewController, MovieUpdateFavoriteViewModel
         // viewModel.fetchWatchListMovies()
     }
 
-    func setupUI() {
-        // setup UI
-        NSLayoutConstraint.activate([
-            favoriteTableView.topAnchor.constraint(equalTo: view.topAnchor),
-            favoriteTableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            favoriteTableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            favoriteTableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
-
+    func setup(){
+        // refresh control
+        refreshControl.addTarget(self, action: #selector(refresh), for: .valueChanged)
+        refreshControl.tintColor = .systemBlue
+        refreshControl.attributedTitle = NSAttributedString(string: "Fetching Movies ...", attributes: [NSAttributedString.Key.foregroundColor: UIColor.systemBlue])
+        favoriteTableView.refreshControl = refreshControl
     }
 }
 
@@ -101,7 +123,8 @@ class FavoriteListViewController: UIViewController, MovieUpdateFavoriteViewModel
 extension FavoriteListViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let movie = favoriteList[indexPath.row]
-        let movieDetailVC = DetailViewController(movie: movie, viewModel: viewModel)
+        let isWatchList = watchListId.contains(movie.id)
+        let movieDetailVC = DetailViewController(movie: movie, viewModel: viewModel, isWatchList: isWatchList, isFavorite: true)
         navigationController?.pushViewController(movieDetailVC, animated: true)
     }
 
@@ -132,9 +155,13 @@ extension FavoriteListViewController: UITableViewDelegate, UITableViewDataSource
         let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { (action, view, completionHandler) in
             // delete movie from favorite list
             self.viewModel.updateFavoriteMovies(movie: self.favoriteList[indexPath.row], favorite: false)
-            self.favoriteList.remove(at: indexPath.row)
+            DispatchQueue.main.async {
+                self.favoriteList.remove(at: indexPath.row)
+                tableView.deleteRows(at: [indexPath], with: .fade)
+            }
             completionHandler(true)
         }
+        deleteAction.image = UIImage(systemName: "trash")
         return UISwipeActionsConfiguration(actions: [deleteAction])
     }
 
@@ -146,8 +173,36 @@ extension FavoriteListViewController: UITableViewDelegate, UITableViewDataSource
         if editingStyle == .delete {
             // delete movie from favorite list
             self.viewModel.updateFavoriteMovies(movie: self.favoriteList[indexPath.row], favorite: false)
-            self.favoriteList.remove(at: indexPath.row)
+            DispatchQueue.main.async {
+                self.favoriteList.remove(at: indexPath.row)
+                tableView.deleteRows(at: [indexPath], with: .fade)
+            }
+        }
+    }
+    // pull to refresh
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        if let refreshControl = scrollView.refreshControl, refreshControl.isRefreshing {
+            refreshControl.endRefreshing()
+            viewModel.fetchTrendingMovies()
         }
     }
 
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        let offsetY = scrollView.contentOffset.y
+        let contentHeight = scrollView.contentSize.height
+        let height = scrollView.frame.size.height
+
+        if offsetY > contentHeight - height {
+            viewModel.fetchTrendingMovies()
+        }
+    }
+
+}
+
+// MARK: - Refresh
+extension FavoriteListViewController {
+    @objc func refresh() {
+        viewModel.fetchTrendingMovies()
+        refreshControl.endRefreshing()
+    }
 }

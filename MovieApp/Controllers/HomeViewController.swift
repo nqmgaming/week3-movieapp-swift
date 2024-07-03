@@ -2,11 +2,14 @@ import UIKit
 
 class HomeViewController: UIViewController, MovieViewModelOutput, MovieUpdateWatchListViewModelOutput, MovieUpdateFavoriteViewModelOutput {
     func didUpdateFavoriteMovies(isSuccess: Bool, isRemoved: Bool) {
-
+        if isSuccess || isRemoved {
+            // update favorite list
+            viewModel.fetchTrendingMovies()
+        }
     }
     
     func didFailToUpdateFavoriteMovies(error: any Error) {
-        
+        print("Failed to update favorite list: \(error.localizedDescription)")
     }
     
     func didFetchFavoriteMovies(movies: ListMovies) {
@@ -69,6 +72,8 @@ class HomeViewController: UIViewController, MovieViewModelOutput, MovieUpdateWat
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
         self.viewModel.outputMovies = self
+        self.viewModel.outputUpdateWatchListMovies = self
+        self.viewModel.outputFavoriteMovies = self
     }
 
     required init?(coder: NSCoder) {
@@ -177,7 +182,8 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
 
         let movie = trendingMovies[indexPath.row]
         let isWatchList = watchlistMovieIDs.contains(movie.id)
-        let detailViewController = DetailViewController(movie: movie, viewModel: viewModel, isWatchList: isWatchList)
+        let isFavorite = favoriteMovieIDs.contains(movie.id)
+        let detailViewController = DetailViewController(movie: movie, viewModel: viewModel, isWatchList: isWatchList, isFavorite: isFavorite)
         detailViewController.title = movie.title
         detailViewController.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(detailViewController, animated: true)
@@ -204,6 +210,7 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         if let refreshControl = scrollView.refreshControl, refreshControl.isRefreshing {
             refreshControl.endRefreshing()
+            trendingMovies.removeAll()
             page = 1
             viewModel.fetchTrendingMovies(page: page)
         }
@@ -241,12 +248,13 @@ extension HomeViewController {
 // MARK: - Actions
 extension HomeViewController {
     @objc func didTapFavoriteButton() {
-        let favoriteViewController = FavoriteListViewController(favoriteList: favoriteList, viewModel: viewModel)
+        let favoriteViewController = FavoriteListViewController(favoriteList: favoriteList, viewModel: viewModel, watchListId: watchlistMovieIDs)
         favoriteViewController.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(favoriteViewController, animated: true)
     }
 
     @objc func refresh() {
+        trendingMovies.removeAll()
         page = 1
         viewModel.fetchTrendingMovies(page: page)
     }

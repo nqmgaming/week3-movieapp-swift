@@ -2,7 +2,24 @@ import UIKit
 import Cosmos
 import Kingfisher
 
-class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieVideosViewModelOutput, MovieUpdateWatchListViewModelOutput {
+class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieVideosViewModelOutput, MovieUpdateWatchListViewModelOutput, MovieUpdateFavoriteViewModelOutput {
+    func didUpdateFavoriteMovies(isSuccess: Bool, isRemoved: Bool) {
+        DispatchQueue.main.async {
+            let message = isSuccess ? (isRemoved ? "Movie removed from favorite" : "Movie added to favorite") : "Failed to update favorite"
+            let alert = UIAlertController(title: isSuccess ? "Success" : "Error", message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+            self.present(alert, animated: true, completion: nil)
+            // Update favorite list if operation was successful
+            if isSuccess {
+                self.viewModel.fetchTrendingMovies()
+            }
+        }
+    }
+
+    func didFailToUpdateFavoriteMovies(error: any Error) {
+        print("Failed to update favorite list: \(error.localizedDescription)")
+    }
+
     func didUpdateWatchListMovies(isSuccess: Bool, isRemoved: Bool = false) {
         DispatchQueue.main.async {
             let message = isSuccess ? (isRemoved ? "Movie removed from watchlist" : "Movie added to watchlist") : "Failed to update watchlist"
@@ -54,20 +71,24 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieV
     var isWatchList: Bool = false
     var movie: Movie
     var movieVideo: Videos?
+    var isFavorite: Bool = false
     private let viewModel: MovieViewModel
 
-    init(movie: Movie, viewModel: MovieViewModel, isWatchList: Bool = false) {
+    init(movie: Movie, viewModel: MovieViewModel, isWatchList: Bool = false, isFavorite: Bool = false) {
         self.movieId = movie.id
         self.movie = movie
         self.isWatchList = isWatchList
         self.viewModel = viewModel
+        self.isFavorite = isFavorite
         super.init(nibName: nil, bundle: nil)
         self.viewModel.outputMovieDetail = self
         self.viewModel.outputMovieVideos = self
         self.viewModel.outputUpdateWatchListMovies = self
-        //        self.viewModel.outputFavoriteMovies = self
+        self.viewModel.outputFavoriteMovies = self
+        self.favoriteImageView.image = isFavorite ? heartFillImage : heartImage
         self.watchTrailerButton.addTarget(self, action: #selector(watchTrailerButtonTapped), for: .touchUpInside)
         self.watchListButton.addTarget(self, action: #selector(watchListButtonTapped), for: .touchUpInside)
+        self.addToFavoriteButton.addTarget(self, action: #selector(didTapFavoriteButton), for: .touchUpInside)
     }
 
     required init?(coder: NSCoder) {
@@ -146,7 +167,7 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieV
     }()
 
     private lazy var containerRatingAndFavoriteStackView: UIStackView = {
-        let stackView = UIStackView(arrangedSubviews: [containerRatingStackView, addToFavoriteButton])
+        let stackView = UIStackView(arrangedSubviews: [containerRatingStackView, favoriteContainerView])
         stackView.axis = .horizontal
         stackView.distribution = .fill
         stackView.spacing = 10
@@ -206,13 +227,30 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieV
         return view
     }()
 
+    private lazy var favoriteContainerView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .clear
+        return view
+    }()
+
+    private lazy var heartImage: UIImage = {
+        let config = UIImage.SymbolConfiguration(pointSize: 20, weight: .bold)
+        return UIImage(systemName: "heart", withConfiguration: config)!
+    }()
+
+    private lazy var heartFillImage: UIImage = {
+        let config = UIImage.SymbolConfiguration(pointSize: 20, weight: .bold)
+        return UIImage(systemName: "heart.fill", withConfiguration: config)!
+    }()
+
+    private lazy var favoriteImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.tintColor = .white
+        return imageView
+    }()
+
     private lazy var addToFavoriteButton: UIButton = {
         let button = UIButton()
-
-        let heartImage = UIImage(systemName: "heart")
-        heartImage?.withTintColor(.white, renderingMode: .alwaysOriginal)
-        heartImage?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 20, weight: .bold))
-        button.setImage(heartImage, for: .normal)
         return button
     }()
 
@@ -409,6 +447,8 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieV
         contentView.addSubview(titleLable)
         contentView.addSubview(genreCollectionView)
         contentView.addSubview(containerRatingAndFavoriteStackView)
+        favoriteContainerView.addSubview(favoriteImageView)
+        favoriteContainerView.addSubview(addToFavoriteButton)
         contentView.addSubview(genresLabel)
         contentView.addSubview(durationLabel)
         contentView.addSubview(releasedDateLabel)
@@ -448,10 +488,28 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieV
             containerRatingAndFavoriteStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
         ])
 
+        favoriteContainerView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            favoriteContainerView.widthAnchor.constraint(equalToConstant: 30),
+            favoriteContainerView.heightAnchor.constraint(equalToConstant: 30)
+        ])
+
+        favoriteImageView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            favoriteImageView.topAnchor.constraint(equalTo: favoriteContainerView.topAnchor),
+            favoriteImageView.leadingAnchor.constraint(equalTo: favoriteContainerView.leadingAnchor),
+            favoriteImageView.trailingAnchor.constraint(equalTo: favoriteContainerView.trailingAnchor),
+            favoriteImageView.bottomAnchor.constraint(equalTo: favoriteContainerView.bottomAnchor)
+        ])
+
+        favoriteImageView.sendSubviewToBack(favoriteImageView)
+
         addToFavoriteButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            addToFavoriteButton.widthAnchor.constraint(equalToConstant: 30),
-            addToFavoriteButton.heightAnchor.constraint(equalToConstant: 30)
+            addToFavoriteButton.topAnchor.constraint(equalTo: favoriteContainerView.topAnchor),
+            addToFavoriteButton.leadingAnchor.constraint(equalTo: favoriteContainerView.leadingAnchor),
+            addToFavoriteButton.trailingAnchor.constraint(equalTo: favoriteContainerView.trailingAnchor),
+            addToFavoriteButton.bottomAnchor.constraint(equalTo: favoriteContainerView.bottomAnchor)
         ])
 
         genresLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -538,8 +596,13 @@ extension DetailViewController {
     }
 
     @objc func didTapFavoriteButton() {
-//        let favoriteListVC = FavoriteListViewController(favoriteList: favoriteList, viewModel: viewModel)
-//        navigationController?.pushViewController(favoriteListVC, animated: true)
+        // Update favorite
+        self.isFavorite = !self.isFavorite
+        viewModel.updateFavoriteMovies(movie: movie, favorite: isFavorite)
+        viewModel.fetchTrendingMovies()
+        DispatchQueue.main.async {
+            self.favoriteImageView.image = self.isFavorite ? self.heartFillImage : self.heartImage
+        }
     }
 }
 

@@ -51,6 +51,7 @@ class MovieViewModel {
                     // save favorite movies to user defaults
                     let encoder = JSONEncoder()
                     if let encoded = try? encoder.encode(movies.results) {
+                        print(movies.results?.count)
                         UserDefaults.standard.set(encoded, forKey: "favorite")
                     }
                     self.outputMovies?.didFetchFavoriteMovies(movies: movies)
@@ -116,11 +117,13 @@ class MovieViewModel {
     }
 
     func updateFavoriteMovies(movie: Movie, favorite: Bool){
+        print("Run here")
         movieService.updateFavoriteMovies(movie: movie, favorite: favorite){ result in
             switch result {
                 case .success(let isSuccess):
                     // update favorite in user defaults
                     if favorite {
+                        print("add favorite")
                         if let favoriteData = UserDefaults.standard.data(forKey: "favorite") {
                             var favoriteMovies = try? JSONDecoder().decode([Movie].self, from: favoriteData)
                             favoriteMovies?.append(movie)
@@ -129,6 +132,7 @@ class MovieViewModel {
                             }
                         }
                     } else {
+                        print("remove favorite")
                         if let favoriteData = UserDefaults.standard.data(forKey: "favorite") {
                             var favoriteMovies = try? JSONDecoder().decode([Movie].self, from: favoriteData)
                             favoriteMovies = favoriteMovies?.filter { $0.id != movie.id }
@@ -139,6 +143,7 @@ class MovieViewModel {
                     }
                     self.outputFavoriteMovies?.didUpdateFavoriteMovies(isSuccess: isSuccess, isRemoved: !favorite)
                 case .failure(let error):
+                    print("error")
                     print(error.localizedDescription)
                     self.outputFavoriteMovies?.didFailToUpdateFavoriteMovies(error: error)
             }
