@@ -6,9 +6,24 @@
 //
 
 import Foundation
+import RxSwift
+import RxCocoa
 
 class MovieViewModel {
     private let movieService: MovieService
+    private let disposeBag = DisposeBag()
+
+    // Output
+    let movies = PublishSubject<ListMovies>()
+    let watchListMovies = PublishSubject<ListMovies>()
+    let favoriteMovies = PublishSubject<ListMovies>()
+    let movieDetail = PublishSubject<Movie>()
+    let movieVideos = PublishSubject<Videos>()
+    let updateWatchListSuccess = PublishSubject<(Bool, Bool)>()
+    let updateFavoriteSuccess = PublishSubject<(Bool, Bool)>()
+    let errors = PublishSubject<Error>()
+
+
     weak var outputMovies: MovieViewModelOutput?
     weak var outputMovieDetail: MovieDetailViewModelOutput?
     weak var outputMovieVideos: MovieVideosViewModelOutput?
@@ -51,7 +66,6 @@ class MovieViewModel {
                     // save favorite movies to user defaults
                     let encoder = JSONEncoder()
                     if let encoded = try? encoder.encode(movies.results) {
-                        print(movies.results?.count)
                         UserDefaults.standard.set(encoded, forKey: "favorite")
                     }
                     self.outputMovies?.didFetchFavoriteMovies(movies: movies)
@@ -123,7 +137,6 @@ class MovieViewModel {
                 case .success(let isSuccess):
                     // update favorite in user defaults
                     if favorite {
-                        print("add favorite")
                         if let favoriteData = UserDefaults.standard.data(forKey: "favorite") {
                             var favoriteMovies = try? JSONDecoder().decode([Movie].self, from: favoriteData)
                             favoriteMovies?.append(movie)
@@ -132,7 +145,6 @@ class MovieViewModel {
                             }
                         }
                     } else {
-                        print("remove favorite")
                         if let favoriteData = UserDefaults.standard.data(forKey: "favorite") {
                             var favoriteMovies = try? JSONDecoder().decode([Movie].self, from: favoriteData)
                             favoriteMovies = favoriteMovies?.filter { $0.id != movie.id }

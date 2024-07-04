@@ -6,14 +6,13 @@
 //
 
 import UIKit
+import Hero
 
 class FavoriteListViewController: UIViewController, MovieUpdateFavoriteViewModelOutput, MovieViewModelOutput {
     func didFetchMovies(movies: ListMovies) {
-
     }
 
     func didFetchWatchListMovies(movies: ListMovies) {
-
     }
 
     func didFetchFavoriteMovies(movies: ListMovies) {
@@ -33,8 +32,11 @@ class FavoriteListViewController: UIViewController, MovieUpdateFavoriteViewModel
 
     func didUpdateFavoriteMovies(isSuccess: Bool, isRemoved: Bool) {
         if isSuccess || isRemoved {
-            // update favorite list
-            viewModel.fetchTrendingMovies()
+            DispatchQueue.main.async {
+                if isSuccess {
+                    self.viewModel.fetchTrendingMovies()
+                }
+            }
         }
     }
 
@@ -78,14 +80,15 @@ class FavoriteListViewController: UIViewController, MovieUpdateFavoriteViewModel
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        hero.isEnabled = true
+        hero.modalAnimationType = .selectBy(presenting: .fade, dismissing:.fade)
         navigationController?.navigationBar.prefersLargeTitles = false
         navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
         view.backgroundColor = .background
 
+        print("Favorite List: \(favoriteList)")
 
         setup()
-
-
     }
 
     override func viewDidLayoutSubviews() {
@@ -136,6 +139,10 @@ extension FavoriteListViewController: UITableViewDelegate, UITableViewDataSource
         let cell = tableView.dequeueReusableCell(withIdentifier: "movieCell", for: indexPath) as! MovieTableViewCell
         let movie = favoriteList[indexPath.row]
         cell.configureCell(with: movie)
+        cell.movieTitle.hero.id = "heroImage_\(movie.id)"
+        cell.movieImage.hero.id = "heroTitle_\(movie.id)"
+        cell.movieDateRelease.hero.id = "heroDate_\(movie.id)"
+        cell.descriptionLabel.hero.id = "heroDescription_\(movie.id)"
         return cell
     }
 

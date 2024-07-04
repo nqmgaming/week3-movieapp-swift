@@ -59,6 +59,7 @@ class MovieCollectionViewCell: UICollectionViewCell {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
+        contentView.hero.isEnabled = true
         configure()
     }
 
@@ -108,4 +109,5 @@ class MovieCollectionViewCell: UICollectionViewCell {
         self.movieDateRelease.text = movie.getFormatDate()
         self.posterPath = movie.posterPath
     }
+    
 }

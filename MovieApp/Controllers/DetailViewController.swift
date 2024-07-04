@@ -1,15 +1,11 @@
 import UIKit
 import Cosmos
 import Kingfisher
+import Hero
 
 class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieVideosViewModelOutput, MovieUpdateWatchListViewModelOutput, MovieUpdateFavoriteViewModelOutput {
     func didUpdateFavoriteMovies(isSuccess: Bool, isRemoved: Bool) {
         DispatchQueue.main.async {
-            let message = isSuccess ? (isRemoved ? "Movie removed from favorite" : "Movie added to favorite") : "Failed to update favorite"
-            let alert = UIAlertController(title: isSuccess ? "Success" : "Error", message: message, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
-            self.present(alert, animated: true, completion: nil)
-            // Update favorite list if operation was successful
             if isSuccess {
                 self.viewModel.fetchTrendingMovies()
             }
@@ -245,7 +241,8 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieV
 
     private lazy var favoriteImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.tintColor = .white
+        imageView.tintColor = .blue
+        imageView.contentMode = .scaleAspectFit
         return imageView
     }()
 
@@ -400,8 +397,16 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieV
 
     private var genres: [String] = []
 
+
     override func viewDidLoad() {
         super.viewDidLoad()
+        hero.isEnabled = true
+        self.hero.modalAnimationType = .selectBy(presenting: .fade, dismissing:.fade)
+        backdropImageView.hero.id = "heroImage_\(movie.id)"
+        titleLable.hero.id = "heroTitle_\(movie.id)"
+        descriptionLabel.hero.id = "heroDescription_\(movie.id)"
+        descriptionLabel.hero.isEnabled = true
+        descriptionLabel.hero.modifiers = [.arc, .scale(0.8)]
         navigationController?.navigationBar.prefersLargeTitles = false
         showLoadingView()
         view.backgroundColor = .background
@@ -412,6 +417,8 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieV
         loadGenres()
         viewModel.fetchMovieDetail(movieID: movieId)
         viewModel.fetchMovieVideos(movieID: movieId)
+
+
     }
 
     override func viewWillAppear(_ animated: Bool) {

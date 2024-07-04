@@ -1,4 +1,5 @@
 import UIKit
+import Hero
 
 class HomeViewController: UIViewController, MovieViewModelOutput, MovieUpdateWatchListViewModelOutput, MovieUpdateFavoriteViewModelOutput {
     func didUpdateFavoriteMovies(isSuccess: Bool, isRemoved: Bool) {
@@ -7,11 +8,11 @@ class HomeViewController: UIViewController, MovieViewModelOutput, MovieUpdateWat
             viewModel.fetchTrendingMovies()
         }
     }
-    
+
     func didFailToUpdateFavoriteMovies(error: any Error) {
         print("Failed to update favorite list: \(error.localizedDescription)")
     }
-    
+
     func didFetchFavoriteMovies(movies: ListMovies) {
         guard let movie = movies.results else { dismissLoadingView(); return }
         favoriteList.removeAll()
@@ -22,7 +23,7 @@ class HomeViewController: UIViewController, MovieViewModelOutput, MovieUpdateWat
             self.dismissLoadingView()
         }
     }
-    
+
 
     func didFailToUpdateWatchListMovies(error: any Error) {
         print("Failed to update watch list: \(error.localizedDescription)")
@@ -98,6 +99,8 @@ class HomeViewController: UIViewController, MovieViewModelOutput, MovieUpdateWat
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        hero.isEnabled = true
+        self.hero.modalAnimationType = .selectBy(presenting:.fade, dismissing: .fade)
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationController?.navigationBar.largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
 
@@ -121,6 +124,7 @@ class HomeViewController: UIViewController, MovieViewModelOutput, MovieUpdateWat
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
         navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
+        viewModel.fetchTrendingMovies(page: page)
     }
 
 
@@ -164,8 +168,16 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
             return UICollectionViewCell()
         }
         // check if the movie is in the watchlist
+
+        // check cafeully the code below, it's not the same as the one in FavoriteListViewController it can be Swift/ContiguousArrayBuffer.swift:600: Fatal error: Index out of range
+
+        guard indexPath.row < trendingMovies.count else { return cell }
+
         let movie = trendingMovies[indexPath.row]
         let isWatchList = watchlistMovieIDs.contains(movie.id)
+        cell.movieImage.heroID = "heroImage_\(movie.id)"
+        cell.movieTitle.heroID = "heroTitle_\(movie.id)"
+        cell.movieDateRelease.heroID = "heroDate_\(movie.id)"
         cell.configureCell(with: movie, isWatchList: isWatchList)
         return cell
     }
@@ -186,7 +198,9 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
         let detailViewController = DetailViewController(movie: movie, viewModel: viewModel, isWatchList: isWatchList, isFavorite: isFavorite)
         detailViewController.title = movie.title
         detailViewController.hidesBottomBarWhenPushed = true
+        detailViewController.modalPresentationStyle = .popover
         navigationController?.pushViewController(detailViewController, animated: true)
+
     }
 
 

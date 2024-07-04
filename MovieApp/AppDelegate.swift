@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Hero
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -23,6 +24,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             let viewModel = MovieViewModel(movieService: movieService)
             let homeViewController = HomeViewController(viewModel: viewModel)
             let navigationController = UINavigationController(rootViewController: homeViewController)
+            navigationController.hero.isEnabled = true
             window.rootViewController = navigationController
             window.makeKeyAndVisible()
         }

@@ -24,6 +24,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         UINavigationBar.appearance().tintColor = .white
         UINavigationBar.appearance().barTintColor = .background
         let navigationController = UINavigationController(rootViewController: homeViewController)
+        navigationController.hero.isEnabled = true
         window?.rootViewController = navigationController
         window?.makeKeyAndVisible()
 
