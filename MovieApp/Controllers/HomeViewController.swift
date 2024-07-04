@@ -1,64 +1,13 @@
 import UIKit
 import Hero
+import RxSwift
+import RxCocoa
 
-class HomeViewController: UIViewController, MovieViewModelOutput, MovieUpdateWatchListViewModelOutput, MovieUpdateFavoriteViewModelOutput {
-    func didUpdateFavoriteMovies(isSuccess: Bool, isRemoved: Bool) {
-        if isSuccess || isRemoved {
-            // update favorite list
-            viewModel.fetchTrendingMovies()
-        }
-    }
+class HomeViewController: UIViewController {
 
-    func didFailToUpdateFavoriteMovies(error: any Error) {
-        print("Failed to update favorite list: \(error.localizedDescription)")
-    }
+    private let disposeBag = DisposeBag()
 
-    func didFetchFavoriteMovies(movies: ListMovies) {
-        guard let movie = movies.results else { dismissLoadingView(); return }
-        favoriteList.removeAll()
-        favoriteList.append(contentsOf: movie)
-        self.favoriteMovieIDs = Set(favoriteList.map { $0.id })
-        DispatchQueue.main.async {
-            self.collectionViewTrending.reloadData()
-            self.dismissLoadingView()
-        }
-    }
-
-
-    func didFailToUpdateWatchListMovies(error: any Error) {
-        print("Failed to update watch list: \(error.localizedDescription)")
-    }
-
-    func didFetchWatchListMovies(movies: ListMovies) {
-        guard let movie = movies.results else { dismissLoadingView(); return }
-        watchList.removeAll()
-        watchList.append(contentsOf: movie)
-        self.watchlistMovieIDs = Set(watchList.map { $0.id })
-        DispatchQueue.main.async {
-            self.collectionViewTrending.reloadData()
-            self.dismissLoadingView()
-        }
-    }
-
-    func didUpdateWatchListMovies(isSuccess: Bool, isRemoved: Bool) {
-        if isSuccess || isRemoved {
-            //update watchlist
-            viewModel.fetchTrendingMovies()
-        }
-    }
-
-    func didFetchMovies(movies: ListMovies) {
-        guard let movie = movies.results else { return }
-        trendingMovies.append(contentsOf: movie)
-        DispatchQueue.main.async {
-            self.collectionViewTrending.reloadData()
-            self.dismissLoadingView()
-        }
-    }
-
-    func didFailToFetchMovies(error: any Error) {
-        print("Failed to fetch movies: \(error.localizedDescription)")
-    }
+    let searchController = UISearchController(searchResultsController: nil)
 
     var trendingMovies: [Movie] = []
     var watchList: [Movie] = []
@@ -72,9 +21,6 @@ class HomeViewController: UIViewController, MovieViewModelOutput, MovieUpdateWat
     init(viewModel: MovieViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
-        self.viewModel.outputMovies = self
-        self.viewModel.outputUpdateWatchListMovies = self
-        self.viewModel.outputFavoriteMovies = self
     }
 
     required init?(coder: NSCoder) {
@@ -113,25 +59,76 @@ class HomeViewController: UIViewController, MovieViewModelOutput, MovieUpdateWat
         showLoadingView()
         getWatchListMovies()
         getFavoriteMovies()
-        viewModel.fetchTrendingMovies(page: page)
         setupUI()
+        setupSearchController()
         layoutUI()
-        collectionViewTrending.reloadData()
+        bindViewModel()
+        viewModel.fetchMovies(page: page)
+        viewModel.fetchWatchListMovies()
+        viewModel.fetchFavoriteMovies()
+        dismissLoadingView()
+
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        navigationController?.navigationBar.prefersLargeTitles = true
+        navigationController?.navigationBar.prefersLargeTitles = false
         navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
         navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
-        viewModel.fetchTrendingMovies(page: page)
+        navigationItem.largeTitleDisplayMode = .always
     }
 
+    
 
-    // Removed the call from viewDidLayoutSubviews, it's better to keep it in one place
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        // layoutUI() // not needed if called in viewDidLoad
+
+    private func bindViewModel() {
+        // Fetch trending movies
+        viewModel.movies
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] movies in
+                self?.trendingMovies.append(contentsOf: movies.results ?? [])
+                self?.collectionViewTrending.reloadData()
+            })
+            .disposed(by: disposeBag)
+
+        viewModel.errors
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { error in
+                // Xử lý lỗi ở đây
+            })
+            .disposed(by: disposeBag)
+
+        // Fetch watchlist movies
+        viewModel.watchListMovies
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] movies in
+                self?.watchList = movies.results ?? []
+                self?.watchlistMovieIDs = Set(movies.results?.map { $0.id } ?? [])
+            })
+            .disposed(by: disposeBag)
+
+        viewModel.errors
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { error in
+                // Xử lý lỗi ở đây
+            })
+            .disposed(by: disposeBag)
+
+        // Fetch favorite movies
+        viewModel.favoriteMovies
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] movies in
+                self?.favoriteList = movies.results ?? []
+                self?.favoriteMovieIDs = Set(movies.results?.map { $0.id } ?? [])
+            })
+            .disposed(by: disposeBag)
+
+        viewModel.errors
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { error in
+                // Xử lý lỗi ở đây
+            })
+            .disposed(by: disposeBag)
     }
 }
 
@@ -158,6 +155,17 @@ extension HomeViewController {
             collectionViewTrending.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
+
+    private func setupSearchController() {
+        searchController.searchResultsUpdater = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchBar.placeholder = "Search Movies"
+        searchController.searchBar.tintColor = .blue
+        searchController.searchBar.searchTextField.backgroundColor = .white
+        searchController.searchBar.searchTextField.textColor = .black
+        navigationItem.searchController = searchController
+        definesPresentationContext = true
+    }
 }
 
 
@@ -167,10 +175,6 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath) as? MovieCollectionViewCell else {
             return UICollectionViewCell()
         }
-        // check if the movie is in the watchlist
-
-        // check cafeully the code below, it's not the same as the one in FavoriteListViewController it can be Swift/ContiguousArrayBuffer.swift:600: Fatal error: Index out of range
-
         guard indexPath.row < trendingMovies.count else { return cell }
 
         let movie = trendingMovies[indexPath.row]
@@ -216,17 +220,21 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
 
         if offsetY > contentHeight - height {
             page += 1
-            viewModel.fetchTrendingMovies(page: page)
+            viewModel.fetchMovies(page: page)
         }
     }
 
     // pull to refresh
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         if let refreshControl = scrollView.refreshControl, refreshControl.isRefreshing {
-            refreshControl.endRefreshing()
             trendingMovies.removeAll()
+            watchList.removeAll()
+            favoriteList.removeAll()
             page = 1
-            viewModel.fetchTrendingMovies(page: page)
+            viewModel.fetchMovies(page: page)
+            viewModel.fetchWatchListMovies()
+            viewModel.fetchFavoriteMovies()
+            refreshControl.endRefreshing()
         }
     }
 
@@ -259,6 +267,30 @@ extension HomeViewController {
 
 }
 
+// Search bar
+extension HomeViewController: UISearchBarDelegate {
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchText.isEmpty {
+            viewModel.fetchMovies(page: page)
+        } else {
+//            viewModel.searchMovies(query: searchText)
+        }
+    }
+}
+
+// MARK: - UISearchResultsUpdating
+extension HomeViewController: UISearchResultsUpdating {
+    func updateSearchResults(for searchController: UISearchController) {
+        guard let text = searchController.searchBar.text else { return }
+        if text.isEmpty {
+            viewModel.fetchMovies(page: page)
+        } else {
+        }
+
+    }
+
+}
+
 // MARK: - Actions
 extension HomeViewController {
     @objc func didTapFavoriteButton() {
@@ -269,7 +301,13 @@ extension HomeViewController {
 
     @objc func refresh() {
         trendingMovies.removeAll()
+        watchList.removeAll()
+        favoriteList.removeAll()
         page = 1
-        viewModel.fetchTrendingMovies(page: page)
+        viewModel.fetchMovies(page: page)
+        viewModel.fetchWatchListMovies()
+        viewModel.fetchFavoriteMovies()
+        refreshControl.endRefreshing()
     }
 }
+

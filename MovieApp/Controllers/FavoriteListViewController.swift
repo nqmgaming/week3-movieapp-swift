@@ -7,42 +7,12 @@
 
 import UIKit
 import Hero
+import RxSwift
+import RxCocoa
 
-class FavoriteListViewController: UIViewController, MovieUpdateFavoriteViewModelOutput, MovieViewModelOutput {
-    func didFetchMovies(movies: ListMovies) {
-    }
+class FavoriteListViewController: UIViewController{
 
-    func didFetchWatchListMovies(movies: ListMovies) {
-    }
-
-    func didFetchFavoriteMovies(movies: ListMovies) {
-        guard let movie = movies.results else { return }
-        favoriteList.removeAll()
-        favoriteList.append(contentsOf: movie)
-        self.watchListId = Set(favoriteList.map { $0.id })
-        DispatchQueue.main.async {
-            self.favoriteTableView.reloadData()
-        }
-    }
-
-    func didFailToFetchMovies(error: any Error) {
-        print("Failed to fetch movies: \(error.localizedDescription)")
-    }
-
-
-    func didUpdateFavoriteMovies(isSuccess: Bool, isRemoved: Bool) {
-        if isSuccess || isRemoved {
-            DispatchQueue.main.async {
-                if isSuccess {
-                    self.viewModel.fetchTrendingMovies()
-                }
-            }
-        }
-    }
-
-    func didFailToUpdateFavoriteMovies(error: any Error) {
-        print("Failed to update favorite list: \(error.localizedDescription)")
-    }
+    private let disposeBag = DisposeBag()
 
     let favoriteTableView: UITableView = {
         let tableView = UITableView()
@@ -68,9 +38,6 @@ class FavoriteListViewController: UIViewController, MovieUpdateFavoriteViewModel
         self.watchListId = watchListId
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
-        viewModel.outputFavoriteMovies = self
-        viewModel.outputMovies = self
-        viewModel.fetchTrendingMovies()
         title = "Favorite"
     }
 
@@ -89,6 +56,8 @@ class FavoriteListViewController: UIViewController, MovieUpdateFavoriteViewModel
         print("Favorite List: \(favoriteList)")
 
         setup()
+
+        bindViewModel()
     }
 
     override func viewDidLayoutSubviews() {
@@ -105,12 +74,14 @@ class FavoriteListViewController: UIViewController, MovieUpdateFavoriteViewModel
         navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
     }
 
-    func getFavoriteMovies() {
-        // viewModel.fetchFavoriteMovies()
-    }
-
-    func getWatchListMovies() {
-        // viewModel.fetchWatchListMovies()
+    private func bindViewModel(){
+        viewModel.fetchFavoriteMovies()
+        viewModel.favoriteMovies
+            .subscribe(onNext: { [weak self] movies in
+                self?.favoriteList = movies.results ?? []
+                self?.favoriteTableView.reloadData()
+            })
+            .disposed(by: disposeBag)
     }
 
     func setup(){
@@ -190,7 +161,13 @@ extension FavoriteListViewController: UITableViewDelegate, UITableViewDataSource
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         if let refreshControl = scrollView.refreshControl, refreshControl.isRefreshing {
             refreshControl.endRefreshing()
-            viewModel.fetchTrendingMovies()
+            viewModel.fetchFavoriteMovies()
+            viewModel.favoriteMovies
+                .subscribe(onNext: { [weak self] movies in
+                    self?.favoriteList = movies.results ?? []
+                    self?.favoriteTableView.reloadData()
+                })
+                .disposed(by: disposeBag)
         }
     }
 
@@ -200,7 +177,14 @@ extension FavoriteListViewController: UITableViewDelegate, UITableViewDataSource
         let height = scrollView.frame.size.height
 
         if offsetY > contentHeight - height {
-            viewModel.fetchTrendingMovies()
+            // fetch more data
+            viewModel.fetchFavoriteMovies()
+            viewModel.favoriteMovies
+                .subscribe(onNext: { [weak self] movies in
+                    self?.favoriteList = movies.results ?? []
+                    self?.favoriteTableView.reloadData()
+                })
+                .disposed(by: disposeBag)
         }
     }
 
@@ -209,7 +193,13 @@ extension FavoriteListViewController: UITableViewDelegate, UITableViewDataSource
 // MARK: - Refresh
 extension FavoriteListViewController {
     @objc func refresh() {
-        viewModel.fetchTrendingMovies()
         refreshControl.endRefreshing()
+        viewModel.fetchFavoriteMovies()
+        viewModel.favoriteMovies
+            .subscribe(onNext: { [weak self] movies in
+                self?.favoriteList = movies.results ?? []
+                self?.favoriteTableView.reloadData()
+            })
+            .disposed(by: disposeBag)
     }
 }

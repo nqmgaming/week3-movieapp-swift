@@ -2,66 +2,12 @@ import UIKit
 import Cosmos
 import Kingfisher
 import Hero
+import RxSwift
+import RxCocoa
 
-class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieVideosViewModelOutput, MovieUpdateWatchListViewModelOutput, MovieUpdateFavoriteViewModelOutput {
-    func didUpdateFavoriteMovies(isSuccess: Bool, isRemoved: Bool) {
-        DispatchQueue.main.async {
-            if isSuccess {
-                self.viewModel.fetchTrendingMovies()
-            }
-        }
-    }
+class DetailViewController: UIViewController{
 
-    func didFailToUpdateFavoriteMovies(error: any Error) {
-        print("Failed to update favorite list: \(error.localizedDescription)")
-    }
-
-    func didUpdateWatchListMovies(isSuccess: Bool, isRemoved: Bool = false) {
-        DispatchQueue.main.async {
-            let message = isSuccess ? (isRemoved ? "Movie removed from watchlist" : "Movie added to watchlist") : "Failed to update watchlist"
-            let alert = UIAlertController(title: isSuccess ? "Success" : "Error", message: message, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
-            self.present(alert, animated: true, completion: nil)
-            // Update watchlist if operation was successful
-            if isSuccess {
-                self.viewModel.fetchTrendingMovies()
-            }
-        }
-    }
-
-    func didFailToUpdateWatchListMovies(error: any Error) {
-        print("Failed to update watch list: \(error.localizedDescription)")
-    }
-
-    func didFetchMovieVideos(videos: Videos) {
-        self.movieVideo = videos
-        DispatchQueue.main.async {
-            self.watchTrailerButton.isHidden = false
-        }
-    }
-
-    func didFailToFetchMovieVideos(error: any Error) {
-        print("Failed to fetch movie videos: \(error.localizedDescription)")
-    }
-
-    func didFetchMovieDetail(movie: Movie) {
-        self.movie = movie
-        DispatchQueue.main.async {
-            self.titleLable.attributedText = self.createTitleAndDateAttributedString()
-            self.ratingLabel.attributedText = self.createRatingAttributedString()
-            self.genresLabel.attributedText = self.createGenresAttributedString()
-            self.durationLabel.attributedText = self.createDurationAttributedString()
-            self.ratingView.rating = movie.getRatingStar()
-            self.descriptionLabel.text = movie.getDesc()
-            self.genreCollectionView.reloadData()
-            self.dismissLoadingView()
-        }
-    }
-
-    func didFailToFetchMovieDetail(error: any Error) {
-        print("Failed to fetch movie detail: \(error.localizedDescription)")
-    }
-
+    private let disposeBag = DisposeBag()
 
     let movieId: Int
     var isWatchList: Bool = false
@@ -77,10 +23,6 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieV
         self.viewModel = viewModel
         self.isFavorite = isFavorite
         super.init(nibName: nil, bundle: nil)
-        self.viewModel.outputMovieDetail = self
-        self.viewModel.outputMovieVideos = self
-        self.viewModel.outputUpdateWatchListMovies = self
-        self.viewModel.outputFavoriteMovies = self
         self.favoriteImageView.image = isFavorite ? heartFillImage : heartImage
         self.watchTrailerButton.addTarget(self, action: #selector(watchTrailerButtonTapped), for: .touchUpInside)
         self.watchListButton.addTarget(self, action: #selector(watchListButtonTapped), for: .touchUpInside)
@@ -415,17 +357,39 @@ class DetailViewController: UIViewController, MovieDetailViewModelOutput, MovieV
         layout()
         style()
         loadGenres()
-        viewModel.fetchMovieDetail(movieID: movieId)
-        viewModel.fetchMovieVideos(movieID: movieId)
-
-
+        bindViewModel()
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.navigationBar.prefersLargeTitles = false
         navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
+        navigationItem.largeTitleDisplayMode = .never
 
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        navigationController?.navigationBar.prefersLargeTitles = false
+        navigationItem.largeTitleDisplayMode = .never
+    }
+
+    private func bindViewModel(){
+        viewModel.fetchMovieDetail(movieID: movieId)
+        viewModel.movieDetail
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] movieDetail in
+                self?.ratingView.rating = self?.movie.getRatingStar() ?? 0
+                self?.descriptionLabel.text = self?.movie.getDesc()
+                self?.dismissLoadingView()
+            }).disposed(by: disposeBag)
+
+        viewModel.fetchMovieVideos(movieID: movieId)
+        viewModel.movieVideos
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] videos in
+                self?.movieVideo = videos
+            }).disposed(by: disposeBag)
     }
 
     private func setupScrollView() {
@@ -600,16 +564,17 @@ extension DetailViewController {
         DispatchQueue.main.async {
             self.watchListButton.setTitle("\(self.isWatchList ? "Remove from Watchlist" : "Add to Watchlist")", for: .normal)
         }
+        viewModel.fetchWatchListMovies()
     }
 
     @objc func didTapFavoriteButton() {
         // Update favorite
         self.isFavorite = !self.isFavorite
         viewModel.updateFavoriteMovies(movie: movie, favorite: isFavorite)
-        viewModel.fetchTrendingMovies()
         DispatchQueue.main.async {
             self.favoriteImageView.image = self.isFavorite ? self.heartFillImage : self.heartImage
         }
+        viewModel.fetchFavoriteMovies()
     }
 }
 
@@ -619,9 +584,4 @@ extension UIImageView {
         self.kf.indicatorType = .activity
         self.kf.setImage(with: url)
     }
-}
-
-// MARK: - NSUserDefault delete or save watchlist
-extension DetailViewController {
-
 }

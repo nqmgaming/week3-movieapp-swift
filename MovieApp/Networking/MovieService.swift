@@ -6,13 +6,14 @@
 //
 
 import Foundation
+import RxSwift
 
 protocol MovieService {
-    func fetchTrendingMovies(page: Int, completion: @escaping (Swift.Result<ListMovies, Error>) -> Void)
-    func fetchWatchListMovies(completion: @escaping (Swift.Result<ListMovies, Error>) -> Void)
-    func fetchFavoriteMovies(completion: @escaping (Swift.Result<ListMovies, Error>) -> Void)
-    func fetchMovieDetail(movieID: Int, completion: @escaping (Swift.Result<Movie, Error>) -> Void)
-    func fetchMovieVideos(movieID: Int, completion: @escaping (Swift.Result<Videos, Error>) -> Void)
-    func updateWatchListMovies(movie: Movie, watchlist: Bool , completion: @escaping (Swift.Result<Bool, Error>) -> Void)
-    func updateFavoriteMovies(movie: Movie, favorite: Bool , completion: @escaping (Swift.Result<Bool, Error>) -> Void)
+    func fetchTrendingMovies(page: Int) -> Single<ListMovies>
+    func fetchWatchListMovies() -> Single<ListMovies>
+    func fetchFavoriteMovies() -> Single<ListMovies>
+    func fetchMovieDetail(movieID: Int) -> Single<Movie>
+    func fetchMovieVideos(movieID: Int) -> Single<Videos>
+    func updateWatchListMovies(movie: Movie, watchlist: Bool) -> Single<Bool>
+    func updateFavoriteMovies(movie: Movie, favorite: Bool) -> Single<Bool>
 }
