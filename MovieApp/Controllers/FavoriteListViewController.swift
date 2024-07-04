@@ -26,6 +26,28 @@ class FavoriteListViewController: UIViewController{
         return tableView
     }()
 
+    private let emptyView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .vertical
+        stackView.alignment = .center
+        stackView.spacing = 10
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+
+        let imageView = UIImageView(image: UIImage(systemName: "heart.slash.fill"))
+        imageView.tintColor = .systemGray
+        imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.addArrangedSubview(imageView)
+
+        let label = UILabel()
+        label.text = "No favorite movies"
+        label.textColor = .systemGray
+        label.textAlignment = .center
+        stackView.addArrangedSubview(label)
+
+        return stackView
+    }()
+
     // refresh control
     private let refreshControl = UIRefreshControl()
 
@@ -52,9 +74,7 @@ class FavoriteListViewController: UIViewController{
         navigationController?.navigationBar.prefersLargeTitles = false
         navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
         view.backgroundColor = .background
-
-        print("Favorite List: \(favoriteList)")
-
+        updateEmptyView()
         setup()
 
         bindViewModel()
@@ -63,9 +83,20 @@ class FavoriteListViewController: UIViewController{
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         view.addSubview(favoriteTableView)
+        view.addSubview(emptyView)
+
         favoriteTableView.delegate = self
         favoriteTableView.dataSource = self
         favoriteTableView.frame = view.bounds
+
+        NSLayoutConstraint.activate([
+            emptyView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            emptyView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
+    }
+
+    private func updateEmptyView() {
+        emptyView.isHidden = !favoriteList.isEmpty
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -80,6 +111,7 @@ class FavoriteListViewController: UIViewController{
             .subscribe(onNext: { [weak self] movies in
                 self?.favoriteList = movies.results ?? []
                 self?.favoriteTableView.reloadData()
+                self?.updateEmptyView()
             })
             .disposed(by: disposeBag)
     }
@@ -136,6 +168,9 @@ extension FavoriteListViewController: UITableViewDelegate, UITableViewDataSource
             DispatchQueue.main.async {
                 self.favoriteList.remove(at: indexPath.row)
                 tableView.deleteRows(at: [indexPath], with: .fade)
+                if self.favoriteList.isEmpty {
+                    self.updateEmptyView()
+                }
             }
             completionHandler(true)
         }
@@ -154,6 +189,7 @@ extension FavoriteListViewController: UITableViewDelegate, UITableViewDataSource
             DispatchQueue.main.async {
                 self.favoriteList.remove(at: indexPath.row)
                 tableView.deleteRows(at: [indexPath], with: .fade)
+                self.updateEmptyView()
             }
         }
     }
@@ -183,6 +219,7 @@ extension FavoriteListViewController: UITableViewDelegate, UITableViewDataSource
                 .subscribe(onNext: { [weak self] movies in
                     self?.favoriteList = movies.results ?? []
                     self?.favoriteTableView.reloadData()
+                    self?.updateEmptyView()
                 })
                 .disposed(by: disposeBag)
         }
@@ -199,6 +236,7 @@ extension FavoriteListViewController {
             .subscribe(onNext: { [weak self] movies in
                 self?.favoriteList = movies.results ?? []
                 self?.favoriteTableView.reloadData()
+                self?.updateEmptyView()
             })
             .disposed(by: disposeBag)
     }
