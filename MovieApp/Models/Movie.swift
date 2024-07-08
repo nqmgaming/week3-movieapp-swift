@@ -29,10 +29,16 @@ struct Movie: Codable {
     let runtime: Int?
 
     var posterURL: URL? {
+        if posterPath == nil {
+            return nil
+        }
         return URL(string: "https://image.tmdb.org/t/p/w500\(posterPath ?? "")")
     }
 
     var backdropURL: URL? {
+        if backdropPath == nil {
+            return nil
+        }
         return URL(string: "https://image.tmdb.org/t/p/w500\(backdropPath ?? "")")
     }
 

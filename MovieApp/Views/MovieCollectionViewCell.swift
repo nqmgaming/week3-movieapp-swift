@@ -2,11 +2,12 @@ import UIKit
 import Kingfisher
 
 class MovieCollectionViewCell: UICollectionViewCell {
-    var posterPath: String? {
+    var posterPath: URL? {
         didSet {
             if let posterPath = posterPath {
-                let url = URL(string: Constants.BASE_IMAGE_URL + posterPath)
-                movieImage.kf.setImage(with: url)
+                movieImage.kf.setImage(with: posterPath)
+            }else {
+                movieImage.image = UIImage(named: "placeholder")
             }
         }
     }
@@ -107,7 +108,7 @@ class MovieCollectionViewCell: UICollectionViewCell {
         }
         self.movieTitle.text = movie.title
         self.movieDateRelease.text = movie.getFormatDate()
-        self.posterPath = movie.posterPath
+        self.posterPath = movie.posterURL
     }
     
 }

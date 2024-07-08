@@ -521,7 +521,7 @@ class DetailViewController: UIViewController{
     }
 
     func style() {
-        backdropImageView.loadImage(from: movie.backdropPath)
+        backdropImageView.loadImage(from: movie.backdropURL)
     }
 
     func loadGenres() {
@@ -579,9 +579,14 @@ extension DetailViewController {
 }
 
 extension UIImageView {
-    func loadImage(from url: String?) {
-        guard let url = URL(string: "\(Constants.BASE_IMAGE_URL)\(url ?? "")") else { return }
-        self.kf.indicatorType = .activity
-        self.kf.setImage(with: url)
+    func loadImage(from url: URL?) {
+        // check if url is nil
+        if let url = url {
+            let resource = KF.ImageResource(downloadURL: url)
+            self.kf.setImage(with: resource)
+        } else {
+            self.image = UIImage(named: "placeholder")
+        }
+
     }
 }

@@ -2,11 +2,12 @@ import UIKit
 import Kingfisher
 
 class MovieTableViewCell: UITableViewCell {
-    var posterPath: String? {
+    var posterPath: URL? {
         didSet {
             if let posterPath = posterPath {
-                let url = URL(string: Constants.BASE_IMAGE_URL + posterPath)
-                movieImage.kf.setImage(with: url)
+                movieImage.kf.setImage(with: posterPath)
+            } else {
+                movieImage.image = UIImage(named: "placeholder")
             }
         }
     }
@@ -99,7 +100,7 @@ class MovieTableViewCell: UITableViewCell {
     func configureCell(with movie: Movie) {
         self.movieTitle.text = movie.title
         self.movieDateRelease.text = movie.getFormatDate()
-        self.posterPath = movie.posterPath
+        self.posterPath = movie.posterURL
         self.descriptionLabel.text = movie.overview
     }
 }
