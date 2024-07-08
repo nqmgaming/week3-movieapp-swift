@@ -92,7 +92,7 @@ class HomeViewController: UIViewController {
             .asObservable()
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { error in
-                // Xử lý lỗi ở đây
+                self.showAlert(title: "Error", message: error.localizedDescription)
             })
             .disposed(by: disposeBag)
 
@@ -103,7 +103,6 @@ class HomeViewController: UIViewController {
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] movies in
                 self?.watchList = movies.results ?? []
-                print("watchlist: \(self?.watchList.count)")
                 self?.collectionViewTrending.reloadData()
                 self?.watchlistMovieIDs = Set(movies.results?.map { $0.id } ?? [])
             })
@@ -113,7 +112,7 @@ class HomeViewController: UIViewController {
             .asObservable()
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { error in
-                // Xử lý lỗi ở đây
+                self.showAlert(title: "Error", message: error.localizedDescription)
             })
             .disposed(by: disposeBag)
 
@@ -133,7 +132,7 @@ class HomeViewController: UIViewController {
             .asObservable()
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { error in
-                // Xử lý lỗi ở đây
+                self.showAlert(title: "Error", message: error.localizedDescription)
             })
             .disposed(by: disposeBag)
     }
@@ -286,3 +285,11 @@ extension HomeViewController {
     }
 }
 
+// MARK: - Alert
+extension HomeViewController {
+    func showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        present(alert, animated: true, completion: nil)
+    }
+}
