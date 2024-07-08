@@ -436,7 +436,7 @@ class DetailViewController: UIViewController{
             backdropImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
             backdropImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             backdropImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            backdropImageView.heightAnchor.constraint(equalTo: contentView.heightAnchor, multiplier: 0.4)
+            backdropImageView.heightAnchor.constraint(equalTo: contentView.heightAnchor, multiplier: 0.3)
         ])
 
         titleLable.translatesAutoresizingMaskIntoConstraints = false
@@ -458,7 +458,7 @@ class DetailViewController: UIViewController{
         NSLayoutConstraint.activate([
             containerRatingAndFavoriteStackView.topAnchor.constraint(equalTo: genreCollectionView.bottomAnchor, constant: 20),
             containerRatingAndFavoriteStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
-            containerRatingAndFavoriteStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
+            containerRatingAndFavoriteStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
         ])
 
         favoriteContainerView.translatesAutoresizingMaskIntoConstraints = false
@@ -472,7 +472,9 @@ class DetailViewController: UIViewController{
             favoriteImageView.topAnchor.constraint(equalTo: favoriteContainerView.topAnchor),
             favoriteImageView.leadingAnchor.constraint(equalTo: favoriteContainerView.leadingAnchor),
             favoriteImageView.trailingAnchor.constraint(equalTo: favoriteContainerView.trailingAnchor),
-            favoriteImageView.bottomAnchor.constraint(equalTo: favoriteContainerView.bottomAnchor)
+            favoriteImageView.bottomAnchor.constraint(equalTo: favoriteContainerView.bottomAnchor),
+            favoriteImageView.widthAnchor.constraint(equalTo: favoriteContainerView.widthAnchor),
+            favoriteImageView.heightAnchor.constraint(equalTo: favoriteContainerView.heightAnchor)
         ])
 
         favoriteImageView.sendSubviewToBack(favoriteImageView)
