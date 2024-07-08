@@ -12,6 +12,8 @@ class MovieTableViewCell: UITableViewCell {
         }
     }
 
+    var searchQuery: String?
+
     let containerView: UIView = {
         let view = UIView()
         view.backgroundColor = .ssss
@@ -102,5 +104,6 @@ class MovieTableViewCell: UITableViewCell {
         self.movieDateRelease.text = movie.getFormatDate()
         self.posterPath = movie.posterURL
         self.descriptionLabel.text = movie.overview
+
     }
 }
