@@ -345,8 +345,6 @@ class DetailViewController: UIViewController{
         hero.isEnabled = true
         self.hero.modalAnimationType = .selectBy(presenting: .fade, dismissing:.fade)
         backdropImageView.hero.id = "heroImage_\(movie.id)"
-        titleLable.hero.id = "heroTitle_\(movie.id)"
-        descriptionLabel.hero.id = "heroDescription_\(movie.id)"
         descriptionLabel.hero.isEnabled = true
         descriptionLabel.hero.modifiers = [.arc, .scale(0.8)]
         navigationController?.navigationBar.prefersLargeTitles = false

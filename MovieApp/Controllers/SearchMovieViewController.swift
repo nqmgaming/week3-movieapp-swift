@@ -232,8 +232,6 @@ extension SearchMovieViewController: UICollectionViewDataSource, UICollectionVie
             let movie = searchResult[indexPath.row]
             let isWatchList = watchListId.contains(movie.id)
             cell.movieImage.heroID = "heroImage_\(movie.id)"
-            cell.movieTitle.heroID = "heroTitle_\(movie.id)"
-            cell.movieDateRelease.heroID = "heroDate_\(movie.id)"
             cell.configureCell(with: movie, isWatchList: isWatchList)
             return cell
 

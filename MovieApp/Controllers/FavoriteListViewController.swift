@@ -143,9 +143,6 @@ extension FavoriteListViewController: UITableViewDelegate, UITableViewDataSource
         let movie = favoriteList[indexPath.row]
         cell.configureCell(with: movie)
         cell.movieTitle.hero.id = "heroImage_\(movie.id)"
-        cell.movieImage.hero.id = "heroTitle_\(movie.id)"
-        cell.movieDateRelease.hero.id = "heroDate_\(movie.id)"
-        cell.descriptionLabel.hero.id = "heroDescription_\(movie.id)"
         return cell
     }
 
