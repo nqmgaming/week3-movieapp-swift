@@ -3,6 +3,27 @@ import Alamofire
 import RxSwift
 
 class APIManager: MovieService {
+    func searchMovies(query: String, page: Int) -> RxSwift.Single<ListMovies> {
+        return Single.create { single in
+            let headers: HTTPHeaders = [
+                "accept": "application/json"
+            ]
+
+            let url = "\(Constants.BASE_URL)/search/movie?query=\(query)&page=\(page)&api_key=\(Constants.API_KEY)"
+
+            AF.request(url, headers: headers).responseDecodable(of: ListMovies.self) { response in
+                switch response.result {
+                    case .success(let listMovies):
+                        single(.success(listMovies))
+                    case .failure(let error):
+                        print(error.localizedDescription)
+                        single(.failure(error))
+                }
+            }
+            return Disposables.create()
+        }
+    }
+    
 
     func fetchTrendingMovies(page: Int = 1) -> Single<ListMovies> {
         return Single.create { single in

@@ -55,6 +55,11 @@ class HomeViewController: UIViewController {
         favoriteButton.tintColor = .systemBlue
         navigationItem.rightBarButtonItem = favoriteButton
 
+        // create button search on left navigation bar
+        let searchButton = UIBarButtonItem(image: UIImage(systemName: "magnifyingglass"), style: .plain, target: self, action: #selector(didTapSearchButton))
+        searchButton.tintColor = .systemBlue
+        navigationItem.leftBarButtonItem = searchButton
+
         view.backgroundColor = .background
         showLoadingView()
         setupUI()
@@ -73,7 +78,7 @@ class HomeViewController: UIViewController {
         navigationItem.largeTitleDisplayMode = .always
     }
 
-    
+
 
 
     private func bindViewModel() {
@@ -161,23 +166,13 @@ extension HomeViewController {
             collectionViewTrending.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
-
-    private func setupSearchController() {
-        searchController.searchResultsUpdater = self
-        searchController.obscuresBackgroundDuringPresentation = false
-        searchController.searchBar.placeholder = "Search Movies"
-        searchController.searchBar.tintColor = .blue
-        searchController.searchBar.searchTextField.backgroundColor = .white
-        searchController.searchBar.searchTextField.textColor = .black
-        navigationItem.searchController = searchController
-        definesPresentationContext = true
-    }
 }
 
 
 // MARK: - UICollectionViewDataSource, UICollectionViewDelegate
 extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cell", for: indexPath) as? MovieCollectionViewCell else {
             return UICollectionViewCell()
         }
@@ -213,8 +208,6 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
 
     }
 
-
-
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
         return UIEdgeInsets(top: 5, left: 5, bottom: 16, right: 16)
     }
@@ -237,32 +230,6 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
             refresh()
         }
     }
-
-
-}
-
-// Search bar
-extension HomeViewController: UISearchBarDelegate {
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        if searchText.isEmpty {
-            viewModel.fetchMovies(page: page)
-        } else {
-//            viewModel.searchMovies(query: searchText)
-        }
-    }
-}
-
-// MARK: - UISearchResultsUpdating
-extension HomeViewController: UISearchResultsUpdating {
-    func updateSearchResults(for searchController: UISearchController) {
-        guard let text = searchController.searchBar.text else { return }
-        if text.isEmpty {
-            viewModel.fetchMovies(page: page)
-        } else {
-        }
-
-    }
-
 }
 
 // MARK: - Actions
@@ -271,6 +238,13 @@ extension HomeViewController {
         let favoriteViewController = FavoriteListViewController(favoriteList: favoriteList, viewModel: viewModel, watchListId: watchlistMovieIDs)
         favoriteViewController.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(favoriteViewController, animated: true)
+    }
+
+    @objc func didTapSearchButton() {
+        let searchViewController = SearchMovieViewController(viewModel: viewModel)
+        searchViewController.hidesBottomBarWhenPushed = true
+        navigationController?.pushViewController(searchViewController, animated: true)
+
     }
 
     @objc func refresh() {

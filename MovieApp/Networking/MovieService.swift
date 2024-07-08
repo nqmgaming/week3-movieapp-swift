@@ -14,6 +14,7 @@ protocol MovieService {
     func fetchFavoriteMovies() -> Single<ListMovies>
     func fetchMovieDetail(movieID: Int) -> Single<Movie>
     func fetchMovieVideos(movieID: Int) -> Single<Videos>
+    func searchMovies(query: String, page: Int) -> Single<ListMovies>
     func updateWatchListMovies(movie: Movie, watchlist: Bool) -> Single<Bool>
     func updateFavoriteMovies(movie: Movie, favorite: Bool) -> Single<Bool>
 }

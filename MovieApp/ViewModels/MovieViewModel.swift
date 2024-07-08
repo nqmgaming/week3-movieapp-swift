@@ -12,6 +12,7 @@ class MovieViewModel {
     let favoriteMovies = PublishSubject<ListMovies>()
     let movieDetail = PublishSubject<Movie>()
     let movieVideos = PublishSubject<Videos>()
+    let searchListMovie = PublishSubject<ListMovies>()
     let updateWatchListSuccess = PublishSubject<(Bool, Bool)>()
     let updateFavoriteSuccess = PublishSubject<(Bool, Bool)>()
     let errors = PublishSubject<Error>()
@@ -64,6 +65,16 @@ class MovieViewModel {
         movieService.fetchMovieVideos(movieID: movieID)
             .subscribe(onSuccess: { videos in
                 self.movieVideos.onNext(videos)
+            }, onFailure: { error in
+                self.errors.onNext(error)
+            })
+            .disposed(by: disposeBag)
+    }
+
+    func searchMovies(query: String, page: Int = 1) {
+        movieService.searchMovies(query: query, page: page)
+            .subscribe(onSuccess: { movies in
+                self.searchListMovie.onNext(movies)
             }, onFailure: { error in
                 self.errors.onNext(error)
             })
