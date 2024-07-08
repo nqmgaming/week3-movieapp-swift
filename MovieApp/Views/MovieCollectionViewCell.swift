@@ -97,7 +97,7 @@ class MovieCollectionViewCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func configureCell(with movie: Movie, isWatchList: Bool = false) {
+    func configureCell(with movie: Movie, isWatchList: Bool = false, and searchQuery: String? = nil) {
 
         if isWatchList {
             self.isWatchList = true
@@ -106,9 +106,18 @@ class MovieCollectionViewCell: UICollectionViewCell {
             self.isWatchList = false
             self.watchListLabel.text = ""
         }
-        self.movieTitle.text = movie.title
         self.movieDateRelease.text = movie.getFormatDate()
         self.posterPath = movie.posterURL
+
+        if let searchQuery = searchQuery {
+            let attributedString = NSMutableAttributedString(string: movie.title ?? "")
+            let range = (movie.title as NSString?)?.range(of: searchQuery, options: .caseInsensitive)
+            attributedString.addAttribute(NSAttributedString.Key.foregroundColor, value: UIColor.systemBlue, range: range ?? NSRange(location: 0, length: 0))
+            self.movieTitle.attributedText = attributedString
+//            self.movieTitle.setText(value: movie.title, highlight: searchQuery)
+        }else {
+            self.movieTitle.text = movie.title
+        }
     }
     
 }
