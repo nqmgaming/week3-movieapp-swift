@@ -1,5 +1,6 @@
 Pods/
 Podfile.lock
+build/
 *.xcworkspace
 .vscode/
 .github/workflows/
