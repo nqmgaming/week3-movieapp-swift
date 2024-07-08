@@ -57,15 +57,10 @@ class HomeViewController: UIViewController {
 
         view.backgroundColor = .background
         showLoadingView()
-        getWatchListMovies()
-        getFavoriteMovies()
         setupUI()
-        setupSearchController()
+//        setupSearchController()
         layoutUI()
         bindViewModel()
-        viewModel.fetchMovies(page: page)
-        viewModel.fetchWatchListMovies()
-        viewModel.fetchFavoriteMovies()
         dismissLoadingView()
 
     }
@@ -83,7 +78,9 @@ class HomeViewController: UIViewController {
 
     private func bindViewModel() {
         // Fetch trending movies
+        viewModel.fetchMovies(page: page)
         viewModel.movies
+            .asObservable()
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] movies in
                 self?.trendingMovies.append(contentsOf: movies.results ?? [])
@@ -92,6 +89,7 @@ class HomeViewController: UIViewController {
             .disposed(by: disposeBag)
 
         viewModel.errors
+            .asObservable()
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { error in
                 // Xử lý lỗi ở đây
@@ -99,15 +97,20 @@ class HomeViewController: UIViewController {
             .disposed(by: disposeBag)
 
         // Fetch watchlist movies
+        viewModel.fetchWatchListMovies()
         viewModel.watchListMovies
+            .asObservable()
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] movies in
                 self?.watchList = movies.results ?? []
+                print("watchlist: \(self?.watchList.count)")
+                self?.collectionViewTrending.reloadData()
                 self?.watchlistMovieIDs = Set(movies.results?.map { $0.id } ?? [])
             })
             .disposed(by: disposeBag)
 
         viewModel.errors
+            .asObservable()
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { error in
                 // Xử lý lỗi ở đây
@@ -115,15 +118,19 @@ class HomeViewController: UIViewController {
             .disposed(by: disposeBag)
 
         // Fetch favorite movies
+        viewModel.fetchFavoriteMovies()
         viewModel.favoriteMovies
+            .asObservable()
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] movies in
                 self?.favoriteList = movies.results ?? []
+                self?.collectionViewTrending.reloadData()
                 self?.favoriteMovieIDs = Set(movies.results?.map { $0.id } ?? [])
             })
             .disposed(by: disposeBag)
 
         viewModel.errors
+            .asObservable()
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { error in
                 // Xử lý lỗi ở đây
@@ -227,43 +234,11 @@ extension HomeViewController: UICollectionViewDataSource, UICollectionViewDelega
     // pull to refresh
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         if let refreshControl = scrollView.refreshControl, refreshControl.isRefreshing {
-            trendingMovies.removeAll()
-            watchList.removeAll()
-            favoriteList.removeAll()
-            page = 1
-            viewModel.fetchMovies(page: page)
-            viewModel.fetchWatchListMovies()
-            viewModel.fetchFavoriteMovies()
             refreshControl.endRefreshing()
+            refresh()
         }
     }
 
-
-}
-
-// MARK: - NSUserDefault get watchlist movies
-extension HomeViewController {
-    func getWatchListMovies() {
-        let watchListMovies = UserDefaults.standard.object(forKey: "watchlist") as? Data
-        if let watchListMovies = watchListMovies {
-            let decoder = JSONDecoder()
-            if let decodedMovies = try? decoder.decode([Movie].self, from: watchListMovies) {
-                watchList = decodedMovies
-                watchlistMovieIDs = Set(watchList.map { $0.id })
-            }
-        }
-    }
-
-    func getFavoriteMovies() {
-        let favoriteMovies = UserDefaults.standard.object(forKey: "favorite") as? Data
-        if let favoriteMovies = favoriteMovies {
-            let decoder = JSONDecoder()
-            if let decodedMovies = try? decoder.decode([Movie].self, from: favoriteMovies) {
-                favoriteList = decodedMovies
-                favoriteMovieIDs = Set(favoriteList.map { $0.id })
-            }
-        }
-    }
 
 }
 

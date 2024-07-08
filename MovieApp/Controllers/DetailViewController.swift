@@ -564,7 +564,7 @@ extension DetailViewController {
         DispatchQueue.main.async {
             self.watchListButton.setTitle("\(self.isWatchList ? "Remove from Watchlist" : "Add to Watchlist")", for: .normal)
         }
-        viewModel.fetchWatchListMovies()
+
     }
 
     @objc func didTapFavoriteButton() {
@@ -574,7 +574,7 @@ extension DetailViewController {
         DispatchQueue.main.async {
             self.favoriteImageView.image = self.isFavorite ? self.heartFillImage : self.heartImage
         }
-        viewModel.fetchFavoriteMovies()
+
     }
 }
 

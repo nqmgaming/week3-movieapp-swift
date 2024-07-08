@@ -73,24 +73,8 @@ class MovieViewModel {
     func updateWatchListMovies(movie: Movie, watchlist: Bool, isRemoved: Bool = false) {
         movieService.updateWatchListMovies(movie: movie, watchlist: watchlist)
             .subscribe(onSuccess: { isSuccess in
-                if isRemoved {
-                    if let watchListData = UserDefaults.standard.data(forKey: "watchlist") {
-                        var watchListMovies = try? JSONDecoder().decode([Movie].self, from: watchListData)
-                        watchListMovies = watchListMovies?.filter { $0.id != movie.id }
-                        if let encoded = try? JSONEncoder().encode(watchListMovies) {
-                            UserDefaults.standard.set(encoded, forKey: "watchlist")
-                        }
-                    }
-                } else {
-                    if let watchListData = UserDefaults.standard.data(forKey: "watchlist") {
-                        var watchListMovies = try? JSONDecoder().decode([Movie].self, from: watchListData)
-                        watchListMovies?.append(movie)
-                        if let encoded = try? JSONEncoder().encode(watchListMovies) {
-                            UserDefaults.standard.set(encoded, forKey: "watchlist")
-                        }
-                    }
-                }
                 self.updateWatchListSuccess.onNext((isSuccess, watchlist))
+                self.fetchWatchListMovies()
             }, onFailure: { error in
                 self.errors.onNext(error)
             })
@@ -100,24 +84,8 @@ class MovieViewModel {
     func updateFavoriteMovies(movie: Movie, favorite: Bool) {
         movieService.updateFavoriteMovies(movie: movie, favorite: favorite)
             .subscribe(onSuccess: { isSuccess in
-                if favorite {
-                    if let favoriteData = UserDefaults.standard.data(forKey: "favorite") {
-                        var favoriteMovies = try? JSONDecoder().decode([Movie].self, from: favoriteData)
-                        favoriteMovies?.append(movie)
-                        if let encoded = try? JSONEncoder().encode(favoriteMovies) {
-                            UserDefaults.standard.set(encoded, forKey: "favorite")
-                        }
-                    }
-                } else {
-                    if let favoriteData = UserDefaults.standard.data(forKey: "favorite") {
-                        var favoriteMovies = try? JSONDecoder().decode([Movie].self, from: favoriteData)
-                        favoriteMovies = favoriteMovies?.filter { $0.id != movie.id }
-                        if let encoded = try? JSONEncoder().encode(favoriteMovies) {
-                            UserDefaults.standard.set(encoded, forKey: "favorite")
-                        }
-                    }
-                }
                 self.updateFavoriteSuccess.onNext((isSuccess, favorite))
+                self.fetchFavoriteMovies()
             }, onFailure: { error in
                 self.errors.onNext(error)
             })
