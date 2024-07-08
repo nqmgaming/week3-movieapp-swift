@@ -142,7 +142,7 @@ extension FavoriteListViewController: UITableViewDelegate, UITableViewDataSource
         let cell = tableView.dequeueReusableCell(withIdentifier: "movieCell", for: indexPath) as! MovieTableViewCell
         let movie = favoriteList[indexPath.row]
         cell.configureCell(with: movie)
-        cell.movieTitle.hero.id = "heroImage_\(movie.id)"
+        cell.movieImage.hero.id = "heroImage_\(movie.id)"
         return cell
     }
 
