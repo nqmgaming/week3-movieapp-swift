@@ -183,7 +183,7 @@ class DetailViewController: UIViewController{
 
     private lazy var favoriteImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.tintColor = .blue
+        imageView.tintColor = .clbutton
         imageView.contentMode = .scaleAspectFit
         return imageView
     }()
@@ -377,8 +377,12 @@ class DetailViewController: UIViewController{
         viewModel.movieDetail
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] movieDetail in
+                self?.movie = movieDetail
                 self?.ratingView.rating = self?.movie.getRatingStar() ?? 0
                 self?.descriptionLabel.text = self?.movie.getDesc()
+                self?.durationLabel.attributedText = self?.createDurationAttributedString()
+                self?.genresLabel.attributedText = self?.createGenresAttributedString()
+
                 self?.dismissLoadingView()
             }).disposed(by: disposeBag)
 
@@ -432,7 +436,7 @@ class DetailViewController: UIViewController{
             backdropImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
             backdropImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             backdropImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            backdropImageView.heightAnchor.constraint(equalToConstant: 200)
+            backdropImageView.heightAnchor.constraint(equalTo: contentView.heightAnchor, multiplier: 0.4)
         ])
 
         titleLable.translatesAutoresizingMaskIntoConstraints = false

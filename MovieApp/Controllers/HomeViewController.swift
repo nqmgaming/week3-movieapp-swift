@@ -46,7 +46,8 @@ class HomeViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         hero.isEnabled = true
-        self.hero.modalAnimationType = .selectBy(presenting:.fade, dismissing: .fade)
+        self.hero.modalAnimationType = .selectBy(presenting:.push(direction: .down), dismissing: .fade)
+
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationController?.navigationBar.largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
 
