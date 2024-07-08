@@ -13,6 +13,5 @@ target 'MovieApp' do
   pod "RxSwift"
   pod "RxCocoa"
   pod "Hero"
-  pod "RealmSwift"
 
 end
