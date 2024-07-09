@@ -47,51 +47,22 @@ class APIManager: MovieService {
     }
 
     func fetchWatchListMovies() -> Single<ListMovies> {
+        // fetch from nsuserdefaults
         return Single.create { single in
-            let headers: HTTPHeaders = [
-                "accept": "application/json",
-                "content-type": "application/json",
-                "Authorization": "\(Constants.TOKEN)"
-            ]
-
-            let url = "\(Constants.BASE_URL)/account/\(Constants.USER_ID)/watchlist/movies"
-
-            AF.request(url, headers: headers).responseDecodable(of: ListMovies.self) { response in
-                switch response.result {
-                    case .success(let listMovies):
-                        let encoder = JSONEncoder()
-                        if let encoded = try? encoder.encode(listMovies.results) {
-                            UserDefaults.standard.set(encoded, forKey: "watchlist")
-                        }
-                        single(.success(listMovies))
-                    case .failure(let error):
-                        print(error.localizedDescription)
-                        single(.failure(error))
-                }
-            }
+            // get from userdefaults
+            let movies = UserDefaults.standard.getWatchListMovies()
+            let listMovies = ListMovies(page: 1, results: movies, totalPages: 1, totalResults: movies.count)
+            single(.success(listMovies))
             return Disposables.create()
         }
     }
 
     func fetchFavoriteMovies() -> Single<ListMovies> {
         return Single.create { single in
-            let headers: HTTPHeaders = [
-                "accept": "application/json",
-                "content-type": "application/json",
-                "Authorization": "\(Constants.TOKEN)"
-            ]
-
-            let url = "\(Constants.BASE_URL)/account/\(Constants.USER_ID)/favorite/movies"
-
-            AF.request(url, headers: headers).responseDecodable(of: ListMovies.self) { response in
-                switch response.result {
-                    case .success(let listMovies):
-                        single(.success(listMovies))
-                    case .failure(let error):
-                        print(error.localizedDescription)
-                        single(.failure(error))
-                }
-            }
+            // get from userdefaults
+            let movies = UserDefaults.standard.getFavoriteMovies()
+            let listMovies = ListMovies(page: 1, results: movies, totalPages: 1, totalResults: movies.count)
+            single(.success(listMovies))
             return Disposables.create()
         }
     }
@@ -140,59 +111,30 @@ class APIManager: MovieService {
 
     func updateWatchListMovies(movie: Movie, watchlist: Bool) -> Single<Bool> {
         return Single.create { single in
-            let headers: HTTPHeaders = [
-                "accept": "application/json",
-                "content-type": "application/json",
-                "Authorization": "\(Constants.TOKEN)"
-            ]
-
-            let url = "\(Constants.BASE_URL)/account/\(Constants.USER_ID)/watchlist"
-            print(url)
-
-            let parameters: [String: Any] = [
-                "media_type": "movie",
-                "media_id": movie.id,
-                "watchlist": watchlist
-            ]
-
-            AF.request(url, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers).responseDecodable(of: UpdateWatchListResponse.self) { response in
-                switch response.result {
-                    case .success(let result):
-                        single(.success(result.success))
-                    case .failure(let error):
-                        print(error.localizedDescription)
-                        single(.failure(error))
-                }
+            // save to userdefaults
+            var movies = UserDefaults.standard.getWatchListMovies()
+            if watchlist && !movies.contains(where: { $0.id == movie.id }) {
+                movies.append(movie)
+            } else {
+                movies.removeAll { $0.id == movie.id }
             }
+            UserDefaults.standard.setWatchListMovies(movies)
+            single(.success(true))
             return Disposables.create()
         }
     }
 
     func updateFavoriteMovies(movie: Movie, favorite: Bool) -> Single<Bool> {
         return Single.create { single in
-            let headers: HTTPHeaders = [
-                "accept": "application/json",
-                "content-type": "application/json",
-                "Authorization": "\(Constants.TOKEN)"
-            ]
-
-            let url = "\(Constants.BASE_URL)/account/\(Constants.USER_ID)/favorite"
-
-            let parameters: [String: Any] = [
-                "media_type": "movie",
-                "media_id": movie.id,
-                "favorite": favorite
-            ]
-
-            AF.request(url, method: .post, parameters: parameters, encoding: JSONEncoding.default, headers: headers).responseDecodable(of: UpdateWatchListResponse.self) { response in
-                switch response.result {
-                    case .success(let result):
-                        single(.success(result.success))
-                    case .failure(let error):
-                        print(error.localizedDescription)
-                        single(.failure(error))
-                }
+            // save to userdefaults
+            var movies = UserDefaults.standard.getFavoriteMovies()
+            if favorite  && !movies.contains(where: { $0.id == movie.id }) {
+                movies.append(movie)
+            } else {
+                movies.removeAll { $0.id == movie.id }
             }
+            UserDefaults.standard.setFavoriteMovies(movies)
+            single(.success(true))
             return Disposables.create()
         }
     }
