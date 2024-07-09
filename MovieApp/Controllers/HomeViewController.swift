@@ -64,7 +64,6 @@ class HomeViewController: UIViewController {
         view.backgroundColor = .background
         showLoadingView()
         setupUI()
-//        setupSearchController()
         layoutUI()
         bindViewModel()
         dismissLoadingView()
@@ -129,8 +128,8 @@ class HomeViewController: UIViewController {
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] movies in
                 self?.favoriteList = movies.results ?? []
-                self?.collectionViewTrending.reloadData()
                 self?.favoriteMovieIDs = Set(movies.results?.map { $0.id } ?? [])
+                self?.collectionViewTrending.reloadData()
             })
             .disposed(by: disposeBag)
 
