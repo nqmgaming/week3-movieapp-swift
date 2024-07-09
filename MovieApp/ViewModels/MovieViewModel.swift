@@ -8,8 +8,8 @@ class MovieViewModel {
 
     // Outputs
     let movies = PublishSubject<ListMovies>()
-    let watchListMovies = PublishSubject<ListMovies>()
-    let favoriteMovies = PublishSubject<ListMovies>()
+    let watchListMovies = BehaviorSubject<ListMovies>(value: ListMovies(page: 1, results: [], totalPages: 1, totalResults: 1))
+    let favoriteMovies = BehaviorSubject<ListMovies>(value: ListMovies(page: 1, results: [], totalPages: 1, totalResults: 1))
     let movieDetail = PublishSubject<Movie>()
     let movieVideos = PublishSubject<Videos>()
     let searchListMovie = PublishSubject<ListMovies>()
