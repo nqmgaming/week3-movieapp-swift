@@ -53,20 +53,26 @@ class SearchMovieViewController: UIViewController {
         stackView.alignment = .center
         stackView.spacing = 10
         stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.addArrangedSubview(emptySearchImageView)
+        stackView.addArrangedSubview(emptySearchLabel)
+        return stackView
+    }()
 
+    private lazy var emptySearchImageView: UIImageView = {
         let imageView = UIImageView(image: UIImage(systemName: "magnifyingglass"))
         imageView.tintColor = .systemGray
         imageView.contentMode = .scaleAspectFit
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        stackView.addArrangedSubview(imageView)
+        return imageView
+    }()
 
+    private lazy var emptySearchLabel: UILabel = {
         let label = UILabel()
-        label.text = "Search for movies"
+        label.text = "Just type something to search movies"
         label.textColor = .systemGray
         label.textAlignment = .center
-        stackView.addArrangedSubview(label)
-
-        return stackView
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
     }()
 
 //    private lazy var searchButton: UIButton = {
@@ -108,6 +114,11 @@ class SearchMovieViewController: UIViewController {
                 guard let self = self else { return }
                 self.searchQuery = self.searchTextField.text ?? ""
                 self.viewModel.searchMovies(query: self.searchQuery)
+                if self.searchQuery.isEmpty {
+                    self.searchResult = []
+                    self.searchResultUICollectionView.reloadData()
+                    self.showHideEmptySearchView()
+                }
             })
             .disposed(by: disposeBag)
 
@@ -125,9 +136,11 @@ class SearchMovieViewController: UIViewController {
         if searchResult.isEmpty {
             emptySearchView.isHidden = false
             searchResultUICollectionView.isHidden = true
+            emptySearchLabel.text = "No result found"
         } else {
             emptySearchView.isHidden = true
             searchResultUICollectionView.isHidden = false
+            emptySearchLabel.text = "Just type something to search movies"
         }
     }
 
@@ -148,7 +161,10 @@ class SearchMovieViewController: UIViewController {
         searchResultUICollectionView.dataSource = self
         searchResultUICollectionView.anchor(top: searchTextField.bottomAnchor, bottom: view.bottomAnchor, leading: view.leadingAnchor, trailing: view.trailingAnchor, paddingTop: 10, paddingBottom: 0, paddingLeft: 10, paddingRight: -10, width: 0, height: 0)
 
-        emptySearchView.anchor(top: searchTextField.bottomAnchor, bottom: nil, leading: view.leadingAnchor, trailing: view.trailingAnchor, paddingTop: 10, paddingBottom: 0, paddingLeft: 10, paddingRight: -10, width: 0, height: 0)
+        emptySearchView.anchor(top: searchTextField.bottomAnchor, bottom: nil, leading: view.leadingAnchor, trailing: view.trailingAnchor, paddingTop: 40, paddingBottom: 0, paddingLeft: 10, paddingRight: -10, width: 0, height: 0)
+
+        emptySearchImageView.anchor(top: nil, bottom: nil, leading: nil, trailing: nil, paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0, width: 60, height: 60)
+
 
     }
     private func binViewModel(){
@@ -158,7 +174,6 @@ class SearchMovieViewController: UIViewController {
             .asObservable()
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] movies in
-                print(movies)
                 if self?.page == 1 {
                     self?.searchResult = movies.results ?? []
                 } else {
@@ -232,7 +247,7 @@ extension SearchMovieViewController: UICollectionViewDataSource, UICollectionVie
             let movie = searchResult[indexPath.row]
             let isWatchList = watchListId.contains(movie.id)
             cell.movieImage.heroID = "heroImage_\(movie.id)"
-            cell.configureCell(with: movie, isWatchList: isWatchList)
+            cell.configureCell(with: movie, isWatchList: isWatchList, and: searchQuery)
             return cell
 
     }

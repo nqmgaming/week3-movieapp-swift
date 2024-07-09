@@ -109,12 +109,14 @@ class MovieCollectionViewCell: UICollectionViewCell {
         self.movieDateRelease.text = movie.getFormatDate()
         self.posterPath = movie.posterURL
 
+        print(searchQuery ?? "")
+
         if let searchQuery = searchQuery {
+            // highlight search query (not at all optimized)
             let attributedString = NSMutableAttributedString(string: movie.title ?? "")
             let range = (movie.title as NSString?)?.range(of: searchQuery, options: .caseInsensitive)
             attributedString.addAttribute(NSAttributedString.Key.foregroundColor, value: UIColor.systemBlue, range: range ?? NSRange(location: 0, length: 0))
             self.movieTitle.attributedText = attributedString
-//            self.movieTitle.setText(value: movie.title, highlight: searchQuery)
         }else {
             self.movieTitle.text = movie.title
         }

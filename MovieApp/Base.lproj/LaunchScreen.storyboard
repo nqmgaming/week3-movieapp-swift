@@ -24,8 +24,8 @@
                                 <preferredSymbolConfiguration key="preferredSymbolConfiguration" scale="small" weight="regular"/>
                             </imageView>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Welcome" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gza-VZ-r2m">
-                                <rect key="frame" x="145" y="509" width="117" height="37"/>
-                                <fontDescription key="fontDescription" name="Impact" family="Impact" pointSize="30"/>
+                                <rect key="frame" x="130" y="509.00000000000006" width="133" height="24.666666666666686"/>
+                                <fontDescription key="fontDescription" name="Impact" family="Impact" pointSize="20"/>
                                 <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <color key="highlightedColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </label>
@@ -34,9 +34,8 @@
                         <color key="tintColor" name="background"/>
                         <constraints>
                             <constraint firstItem="nbR-Yv-ji0" firstAttribute="width" secondItem="Ze5-6b-2t3" secondAttribute="width" multiplier="0.608142" id="8Jl-6N-e31"/>
-                            <constraint firstAttribute="trailing" secondItem="gza-VZ-r2m" secondAttribute="trailing" constant="131" id="F31-Vr-d4R"/>
-                            <constraint firstItem="Hi9-e8-JwJ" firstAttribute="top" secondItem="gza-VZ-r2m" secondAttribute="bottom" constant="272" id="Ia9-lk-mV8"/>
-                            <constraint firstItem="gza-VZ-r2m" firstAttribute="leading" secondItem="Ze5-6b-2t3" secondAttribute="leading" constant="145" id="LYe-P3-HRc"/>
+                            <constraint firstAttribute="trailing" secondItem="gza-VZ-r2m" secondAttribute="trailing" constant="130" id="F31-Vr-d4R"/>
+                            <constraint firstItem="gza-VZ-r2m" firstAttribute="leading" secondItem="Ze5-6b-2t3" secondAttribute="leading" constant="130" id="LYe-P3-HRc"/>
                             <constraint firstItem="gza-VZ-r2m" firstAttribute="top" secondItem="nbR-Yv-ji0" secondAttribute="bottom" constant="38.333333333333314" id="XvL-Rz-uqj"/>
                             <constraint firstItem="nbR-Yv-ji0" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" constant="-50" id="b85-z8-jCQ"/>
                             <constraint firstItem="nbR-Yv-ji0" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="dOz-4P-9Uj"/>
