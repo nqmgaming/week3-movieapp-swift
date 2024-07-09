@@ -3,14 +3,22 @@ import Foundation
 
 // MARK: - ListMovies
 struct ListMovies: Codable {
-    let page: Int?
-    let results: [Movie]?
-    let totalPages, totalResults: Int?
+    var page: Int? = 1
+    var results: [Movie]? = []
+    var totalPages: Int? = 1
+    var totalResults: Int? = 1
 
     enum CodingKeys: String, CodingKey {
         case page, results
         case totalPages = "total_pages"
         case totalResults = "total_results"
+    }
+
+    init(page: Int?, results: [Movie]?, totalPages: Int?, totalResults: Int?) {
+        self.page = page
+        self.results = results
+        self.totalPages = totalPages
+        self.totalResults = totalResults
     }
 }
 
