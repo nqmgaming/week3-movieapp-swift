@@ -4,7 +4,7 @@
 //
 //  Created by Nguyen Quang Minh on 27/6/24.
 //
-
+// Release
 import UIKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
