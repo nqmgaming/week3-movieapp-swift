@@ -14,6 +14,7 @@ extension UserDefaults {
     }
 
     func setWatchListMovies(_ movies: [Movie]) {
+        print("setWatchListMovies")
         let encoder = JSONEncoder()
         if let encoded = try? encoder.encode(movies) {
             set(encoded, forKey: UserDefaults.Keys.watchlist)
@@ -21,6 +22,7 @@ extension UserDefaults {
     }
 
     func getWatchListMovies() -> [Movie] {
+        print("getWatchListMovies")
         let decoder = JSONDecoder()
         if let movies = data(forKey: UserDefaults.Keys.watchlist) {
             if let decoded = try? decoder.decode([Movie].self, from: movies) {
